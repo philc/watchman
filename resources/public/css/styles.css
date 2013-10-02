@@ -1,0 +1,94 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+body, html {
+  height: 100%;
+  background-color: #f9f9f9;
+}
+body {
+  font-family: "Helvetica Neue", "Lucida Grande", Helvetica, Arial, Verdana, sans-serif;
+  margin: 0 auto;
+  width: 1000px;
+  position: relative;
+  overflow-x: hidden;
+}
+a { color: #1987C1; }
+header {
+  display: block;
+  padding: 20px;
+  width: 100%;
+}
+#inner-body {
+  position: relative;
+  padding: 20px;
+}
+#watchman-text {
+  position: absolute;
+  top: 0;
+  left: -150px;
+  height: 100%;
+  width: 150px;
+  background-color: yellow;
+  color: black;
+  background-color: black;
+  color: yellow;
+}
+
+#black-edge {
+  position: absolute;
+  width: 100%;
+  top: 0;
+  height: 100%;
+  left: -100%;
+  background-color: black;
+}
+
+#watchman-text div {
+  font-family: Impact, "Helvetica Neue", "Lucida Grande", Helvetica, Arial, sans-serif;
+  font-weight: bold;
+  position: relative;
+  top: 50%;
+  -webkit-transform: rotate(-90deg);
+  font-size: 120px;
+  /* -webkit-transform-origin: 60% 50%; */
+}
+
+nav li {
+  font-weight: bold;
+  list-item-type: none;
+  display: inline-block;
+  padding: 14px 20px;
+  font-size: 20px;
+  margin-right: 20px;
+  background-color: #e4e4f0;
+  background-color: black;
+  background-color: #333;
+  border: 5px solid black;
+}
+nav li a {
+  text-decoration: none;
+  color: white;
+}
+
+/* Index page. */
+.check-status .down {
+  background-color: red;
+}
+.check-status .up {
+  background-color: green;
+}
+
+table#check-statuses {
+  width: 100%;
+}
+table#check-statuses th {
+  text-align: left;
+}
+table#check-statuses th:last-of-type, table#check-statuses td:last-of-type {
+  text-align: right;
+}
+table#check-statuses td {
+  border-bottom: 1px solid #ddd;
+  padding: 10px 0;
+}

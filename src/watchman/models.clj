@@ -3,6 +3,7 @@
             [clj-time.coerce :as time-coerce]
             [clojure.string :as string]
             [korma.incubator.core :as k :refer [belongs-to defentity has-many many-to-many]]
+            [watchman.utils :refer [sget]]
             [clj-time.coerce :as time-coerce])
   (:use korma.db))
 
@@ -51,3 +52,11 @@
 
   (k/insert check-statuses (k/values {:host_id 1 :check_id 1 :last_checked_at
                                       (time-coerce/to-timestamp (time-core/now))})))
+
+(defn get-check-display-name [check-status]
+  (or (sget check-status :nickname)
+      (sget check-status :path)))
+
+(defn get-host-display-name [host]
+  (or (sget host :nickname)
+      (sget host :hostname)))
