@@ -7,3 +7,4 @@ pom.xml
 .lein-env
 log/*.log
 .lein-repl-history
+target/
