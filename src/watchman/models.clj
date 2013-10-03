@@ -30,17 +30,41 @@
        (k/table ~table-name)
        ~@body)))
 
-; TODO(philc): Document the fields.
-(defentity2 hosts)
+; A URL to check on one or more hosts.
+; - path
+; - nickname
+; - timeout
+; - interval: How frequently to run this check. Defaults to 60s.
+; - retry_count: how many times to retry before failing
+; - expected_status_code
+; - expected_response_contents
 (defentity2 checks)
-(defentity2 roles-hosts)
+
+; A host to check, which can belong to one or more roles.
+; - hostname
+; - nickname
+(defentity2 hosts)
+
+; The status of a check for a given host.
+; - host_id
+; - check_id
+; - state: enabled or paused.
+; - last_checked_at
+; - last_response_status_code
+; - last_response_body
+; - status: either unknown (i.e. recently created), up or down
 (defentity2 check-statuses
   (belongs-to checks {:fk :check_id})
   (belongs-to hosts {:fk :host_id}))
 
+; A role is a set of checks and a set of hosts to apply them to.
+; - name
 (defentity2 roles
   (has-many checks {:fk :role_id})
   (many-to-many hosts :roles_hosts {:lfk :role_id :rfk :host_id}))
+
+; A join table for roles-hosts.
+(defentity2 roles-hosts)
 
 ; TODO(philc): Remove this testing function.
 (defn create-sample-rows []
