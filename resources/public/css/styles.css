@@ -13,11 +13,17 @@ h1 {
   margin: 16px 0;
 }
 
+h2 {
+  margin-top: 20px;
+  margin-bottom: 10px;
+  font-weight: normal;
+}
+
 p { margin: 16px 0; }
 
 input[type=text] { padding: 5px 5px; }
 
-button, .button {
+button, .button, input[type=submit] {
   display: inline-block;
   width: 220px;
   padding: 12px 16px;
@@ -155,6 +161,10 @@ table#check-statuses td {
 
 /* Role edit page */
 #roles-edit-page th { white-space:nowrap; }
+#roles-edit-page input[name=name] {
+  width: 200px;
+  margin-left: 10px;
+}
 #roles-edit-page input.path { width: 100%; }
 #roles-edit-page input.hostname { width: 400px; }
 #roles-edit-page input.expected-status-code, #roles-edit-page input.timeout,
