@@ -1,11 +1,37 @@
+/* Style resets. */
 * {
   margin: 0;
   padding: 0;
 }
+
+li { list-style-type: none; }
+
+/* General styles */
+a { color: #1987C1; }
+
+h1 {
+  margin: 16px 0;
+}
+
+p { margin: 16px 0; }
+
+button {
+  width: 220px;
+  padding: 12px 16px;
+  font-size: 18px;
+  background-color: #ccc;
+  background-color: #F6CC25;
+  color: black;
+  border: 0;
+  border-radius:4px;
+  box-shadow: 0px 3px 0px #999;
+}
+
 body, html {
   height: 100%;
   background-color: #f9f9f9;
 }
+
 body {
   font-family: "Helvetica Neue", "Lucida Grande", Helvetica, Arial, Verdana, sans-serif;
   margin: 0 auto;
@@ -13,26 +39,26 @@ body {
   position: relative;
   overflow-x: hidden;
 }
-a { color: #1987C1; }
+
 header {
   display: block;
   padding: 20px;
   width: 100%;
 }
+
 #inner-body {
   position: relative;
   padding: 20px;
 }
+
 #watchman-text {
   position: absolute;
   top: 0;
   left: -150px;
   height: 100%;
   width: 150px;
-  background-color: yellow;
-  color: black;
   background-color: black;
-  color: yellow;
+  color: #F6CC25; /* Yellow */
 }
 
 #black-edge {
@@ -48,25 +74,22 @@ header {
   font-family: Impact, "Helvetica Neue", "Lucida Grande", Helvetica, Arial, sans-serif;
   font-weight: bold;
   position: relative;
-  top: 50%;
+  top: 455px;
   -webkit-transform: rotate(-90deg);
   font-size: 120px;
   /* -webkit-transform-origin: 60% 50%; */
 }
 
-nav li {
-  font-weight: bold;
-  list-item-type: none;
+nav li { display: inline-block; }
+
+nav li a {
   display: inline-block;
-  padding: 14px 20px;
+  font-weight: bold;
   font-size: 20px;
   margin-right: 20px;
-  background-color: #e4e4f0;
-  background-color: black;
   background-color: #333;
   border: 5px solid black;
-}
-nav li a {
+  padding: 14px 20px;
   text-decoration: none;
   color: white;
 }
@@ -92,3 +115,5 @@ table#check-statuses td {
   border-bottom: 1px solid #ddd;
   padding: 10px 0;
 }
+
+/* Role edit page */
