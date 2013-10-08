@@ -151,21 +151,32 @@ table#check-statuses {
 table#check-statuses th {
   text-align: left;
 }
-table#check-statuses th:last-of-type, table#check-statuses td:last-of-type {
-  text-align: right;
-}
+table#check-statuses th:last-of-type, table#check-statuses td:last-of-type { text-align: right; }
 table#check-statuses td {
   border-bottom: 1px solid #ddd;
   padding: 10px 0;
 }
 
 /* Role edit page */
+#roles-edit-page table.display td:last-of-type { vertical-align: middle; }
+
+#roles-edit-page a.add, #roles-edit-page a.remove { text-decoration: none; }
+
+#roles-edit-page a:hover { color: black; }
+
+#roles-edit-page a.remove { color: #cc3333; }
+
 #roles-edit-page th { white-space:nowrap; }
+
 #roles-edit-page input[name=name] {
   width: 200px;
   margin-left: 10px;
 }
+
 #roles-edit-page input.path { width: 100%; }
+
 #roles-edit-page input.hostname { width: 400px; }
+
 #roles-edit-page input.expected-status-code, #roles-edit-page input.timeout,
+
 #roles-edit-page input.max-retries { width: 40px; }
