@@ -41,7 +41,7 @@
 
 ; The editing UI for a role and its associated checks and hosts.
 ; - role: nil if this page is to render a new, unsaved role."
-(defsnippet roles-edit-page "roles_edit.html" [:#role-edit-page]
+(defsnippet roles-edit-page "roles_edit.html" [:#roles-edit-page]
   [role]
   [[:input (attr= :name "name")]] (set-attr :value (:name role))
   ; I sense a missing abstraction.

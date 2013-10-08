@@ -15,6 +15,8 @@ h1 {
 
 p { margin: 16px 0; }
 
+input[type=text] { padding: 5px 5px; }
+
 button, .button {
   display: inline-block;
   width: 220px;
@@ -29,6 +31,35 @@ button, .button {
   text-decoration: none;
   box-sizing: border-box;
   text-align: center;
+}
+
+/*
+ * Display tables.
+ */
+table.display {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+table.display th, table.display td {
+  padding: 0 10px;
+  padding-top: 10px;
+  width: 100%;
+  vertical-align: bottom;
+}
+
+table.display th {
+  text-align: left;
+  padding: 10px;
+  border-bottom: 1px solid #ccc;
+}
+
+table.display th:first-of-type, table.display td:first-of-type {
+  padding-left: 0;
+}
+
+table.display th:last-of-type, table.display td:last-of-type {
+  text-align: right;
 }
 
 body, html {
@@ -123,3 +154,8 @@ table#check-statuses td {
 }
 
 /* Role edit page */
+#roles-edit-page th { white-space:nowrap; }
+#roles-edit-page input.path { width: 100%; }
+#roles-edit-page input.hostname { width: 400px; }
+#roles-edit-page input.expected-status-code, #roles-edit-page input.timeout,
+#roles-edit-page input.max-retries { width: 40px; }

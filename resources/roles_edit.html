@@ -1,4 +1,4 @@
-<div id="role-edit-page">
+<div id="roles-edit-page">
   <script type="text/javascript">
     $(document).ready(function() {
       var currentRowIndex = 10000;
@@ -41,13 +41,14 @@
     <input type="text" name="name" />
 
     <h2>Checks</h2>
-    <table id="checks">
+    <table id="checks" class="display">
       <tr>
         <th>Path</th>
         <th>Nickname</th>
-        <th>Expected status code</th>
+        <th>HTTP status code</th>
         <th>Timeout</th>
         <th>Max retries</th>
+        <th></th>
       </tr>
 
       <!-- This is an HTML fragment that the javascript clones when adding a new row via the Add button.  Note
@@ -87,7 +88,7 @@
     </table>
 
     <h2>Hosts</h2>
-    <table id="hosts">
+    <table id="hosts" class="display">
       <tr>
         <th>Hostname <span class="example">server1.example.com</span></th>
         <th></th>
