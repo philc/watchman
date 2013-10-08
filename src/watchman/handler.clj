@@ -13,6 +13,7 @@
             [compojure.route :as route]
             [clojure.string :as string]
             [watchman.utils :refer [sget]]
+            [ring.util.response :refer [redirect]]
             [korma.incubator.core :as k]
             [watchman.models :as models]))
 
@@ -38,9 +39,11 @@
           [:a] (do-> (content (:name role))
                      (set-attr :href (str "/roles/" (:id role))))))
 
+; The editing UI for a role and its associated checks and hosts.
+; - role: nil if this page is to render a new, unsaved role."
 (defsnippet roles-edit-page "roles_edit.html" [:#role-edit-page]
   [role]
-  [[:input (attr= :name "name")]] (set-attr :value (sget role :name))
+  [[:input (attr= :name "name")]] (set-attr :value (:name role))
   ; I sense a missing abstraction.
   [:tr.check] (clone-for [[i check] (->> role :checks (sort-by models/get-check-display-name) indexed)]
                 [:input.id] (do-> (set-attr :value (sget check :id))
@@ -135,6 +138,14 @@
     (let [roles (k/select models/roles
                   (k/order :name))]
       (layout (roles-page roles))))
+
+  (GET "/roles/new" []
+    (layout (roles-edit-page nil)))
+
+  (POST "/roles/new" {:keys [params]}
+    (let [role-id (-> (select-keys params [:name]) models/create-role (sget :id))]
+      (save-role-from-params (assoc params :id (str role-id)))
+      (redirect (str "/roles/" role-id))))
 
   (GET "/roles/:id" [id]
     (if-let [role (models/get-role-by-id (Integer/parseInt id))]

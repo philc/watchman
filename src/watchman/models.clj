@@ -110,3 +110,7 @@
 (defn get-host-display-name [host]
   (or (sget host :nickname)
       (sget host :hostname)))
+
+(defn create-role [fields]
+  (k/insert roles (k/values fields)))
+
