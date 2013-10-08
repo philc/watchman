@@ -1,6 +1,9 @@
 <div id="roles-edit-page">
   <script type="text/javascript">
     $(document).ready(function() {
+      // If it's a new role, focus the name input box.
+      if ($("input[name=name]").val() == "")
+        $("input[name=name]").focus();
       var currentRowIndex = 10000;
 
       var removeRow = function(event) {
