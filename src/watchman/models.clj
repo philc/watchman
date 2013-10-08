@@ -2,6 +2,7 @@
   (:require [clj-time.core :as time-core]
             [clj-time.coerce :as time-coerce]
             [clojure.string :as string]
+            [korma.db :refer [transaction]]
             [korma.incubator.core :as k :refer [belongs-to defentity has-many many-to-many]]
             [watchman.utils :refer [sget]]
             [clj-time.coerce :as time-coerce])
@@ -35,7 +36,7 @@
 ; - nickname
 ; - timeout
 ; - interval: How frequently to run this check. Defaults to 60s.
-; - retry_count: how many times to retry before failing
+; - max_retries: how many times to retry before considering the check a failure.
 ; - expected_status_code
 ; - expected_response_contents
 (defentity2 checks)
@@ -66,16 +67,41 @@
 ; A join table for roles-hosts.
 (defentity2 roles-hosts)
 
-; TODO(philc): Remove this testing function.
-(defn create-sample-rows []
-  (k/insert roles (k/values {:name "testrole"}))
+(defn upsert
+  "Updates rows which match the given where-map. If no row matches this map, insert one first.
+   This isn't a truly robust or performant upsert, but it should be sufficient for our purposes."
+  ([korma-entity where-map]
+     (upsert korma-entity where-map {}))
+  ([korma-entity where-map additional-fields]
+     (let [row-values (merge where-map additional-fields)]
+       (if (empty? (k/select korma-entity (k/where where-map)))
+         (k/insert korma-entity (k/values row-values))
+         (k/update korma-entity
+           (k/set-fields row-values)
+           (k/where where-map))))))
 
-  (k/insert hosts (k/values {:hostname "localhost:8100"}))
-  (k/insert roles-hosts (k/values {:host_id 1 :role_id 1}))
-  (k/insert checks (k/values {:path "/alertz"}))
+(defn add-host-to-role [host-id role-id]
+  (transaction
+   (upsert roles-hosts {:role_id role-id :host_id host-id})
+   ;; Create a check-status entry for every host+check pair.
+   (let [check-ids (->> (k/select checks (k/where {:role_id role-id}))
+                        (map :id))]
+     (doseq [check-id check-ids]
+       (upsert check-statuses {:host_id host-id :check_id check-id})))))
 
-  (k/insert check-statuses (k/values {:host_id 1 :check_id 1 :last_checked_at
-                                      (time-coerce/to-timestamp (time-core/now))})))
+
+(defn remove-host-from-role [host-id role-id]
+  (transaction
+   (let [check-ids (->> (k/select checks (k/where {:role_id role-id}))
+                        (map :id))]
+     (k/delete check-statuses (k/where {:host_id host-id :check_id [in check-ids]}))
+     (k/delete roles-hosts (k/where {:host_id host-id :role_id role-id})))))
+
+(defn get-role-by-id [id]
+  (first (k/select roles
+           (k/where {:id id})
+           (k/with-object hosts)
+           (k/with-object checks))))
 
 (defn get-check-display-name [check-status]
   (or (sget check-status :nickname)

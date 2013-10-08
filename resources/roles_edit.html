@@ -1,0 +1,110 @@
+<div id="role-edit-page">
+  <script type="text/javascript">
+    $(document).ready(function() {
+      var currentRowIndex = 10000;
+
+      var removeRow = function(event) {
+        event.preventDefault();
+        row = $(event.target).parents("tr");
+        row.find("input.deleted").val("true");
+        row.hide();
+      };
+
+      var addRow = function(event) {
+        event.preventDefault();
+        var clickedTableRow = $(event.target).parents("tr");
+        var newRow = clickedTableRow.parents("table").find(".row-template").clone();
+        newRow.removeClass("row-template");
+        newRow.attr("style", null);
+        var rowIndex = currentRowIndex++;
+        newRow.find("input").each(function(i, input) {
+          input = $(input);
+          // We're trying to match check[0][hey].
+          var match = input.attr("name").match(/(.+)\[.+\]\[(.+)\]/);
+          var newName = match[1] + "[" + rowIndex + "][" + match[2] + "]";
+          input.attr("name", newName);
+        });
+        newRow.insertBefore(clickedTableRow);
+      };
+
+
+      $("#roles-edit-page").on("click", "a.add", addRow);
+
+      $("#roles-edit-page").on("click", "a.remove", removeRow);
+    });
+  </script>
+
+  Name:
+  <input type="text" name="name" />
+  <form method="POST"
+    <h2>Checks</h2>
+    <table id="checks">
+      <tr>
+        <th>Path</th>
+        <th>Nickname</th>
+        <th>Expected status code</th>
+        <th>Timeout</th>
+        <th>Max retries</th>
+      </tr>
+
+      <tr class="row-template" style="display:none">
+        <td>
+          <input type="hidden" class="id" name="check[0][id]"/>
+          <input type="hidden" class="deleted" name="check[0][deleted]" value="false"/>
+          <input type="text" class="path" name="check[0][path]"/>
+        </td>
+        <td><input type="text" class="nickname" name="check[0][nickname]"/></td>
+        <td><input type="text" class="expected-status-code" name="check[0][expected_status_code]"/></td>
+        <td><input type="text" class="timeout" name="check[0][timeout]"/></td>
+        <td><input type="text" class="max-retries" name="check[0][max_retries]"/></td>
+        <td><a href="#" class="remove">remove</a></td>
+      </tr>
+
+      <tr class="check">
+        <td>
+          <input type="hidden" class="id" name="check[0][id]"/>
+          <input type="hidden" class="deleted" name="check[0][deleted]" value="false"/>
+          <input type="text" class="path" name="check[0][path]"/>
+        </td>
+        <td><input type="text" class="nickname" name="check[0][nickname]"/></td>
+        <td><input type="text" class="expected-status-code" name="check[0][expected_status_code]"/></td>
+        <td><input type="text" class="timeout" name="check[0][timeout]"/></td>
+        <td><input type="text" class="max-retries" name="check[0][max_retries]"/></td>
+        <td><a href="#" class="remove">remove</a></td>
+      </tr>
+      <tr>
+        <td colspan=5></td>
+        <td><a href="#" class="add">Add</a></td>
+      </tr>
+    </table>
+
+    <h2>Hosts</h2>
+    <table id="hosts">
+      <tr>
+        <th>Hostname <span class="example">server1.example.com</span></th>
+        <th></th>
+      </tr>
+      <tr class="row-template" style="display:none">
+        <td>
+          <input type="hidden" class="id" name="hosts[0][id]"/>
+          <input type="hidden" class="deleted" name="hosts[0][deleted]" value="false"/>
+          <input type="text" class="hostname" name="hosts[0][hostname]"/>
+        </td>
+        <td><a href="#" class="remove">remove</a></td>
+      </tr>
+      <tr class="host">
+        <td>
+          <input type="hidden" class="id" name="hosts[0][id]"/>
+          <input type="hidden" class="deleted" name="hosts[0][deleted]" value="false"/>
+          <input type="text" class="hostname" name="hosts[0][hostname]"/>
+        </td>
+        <td><a href="#" class="remove">remove</a></td>
+      </tr>
+      <tr>
+        <td></td>
+        <td><a href="#" class="add">Add</a></td>
+      </tr>
+    </table>
+    <input type="submit" name="submit" value="Save" />
+  </form>
+</div>
