@@ -26,6 +26,7 @@
           input.attr("name", newName);
         });
         newRow.insertBefore(clickedTableRow);
+        newRow.find("input:visible").first().focus();
       };
 
 
@@ -66,7 +67,7 @@
         </td>
         <td><input type="text" class="timeout" name="checks[0][timeout]" value="3"/></td>
         <td><input type="text" class="max-retries" name="checks[0][max_retries]" value="0"/></td>
-        <td><a href="#" class="add"><i class="icon-remove"></i></a></td>
+        <td><a href="#" class="remove"><i class="icon-remove"></i></a></td>
       </tr>
 
       <tr class="check">
