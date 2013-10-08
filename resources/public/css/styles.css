@@ -84,6 +84,8 @@ body {
 header {
   display: block;
   padding: 40px;
+  padding-bottom: 0;
+  margin-bottom: 40px;
   width: 100%;
 }
 
@@ -157,7 +159,7 @@ table#check-statuses td {
   padding: 10px 0;
 }
 
-/* Role edit page */
+/* Roles-edit page */
 #roles-edit-page table.display td:last-of-type { vertical-align: middle; }
 
 #roles-edit-page a.add, #roles-edit-page a.remove { text-decoration: none; }
