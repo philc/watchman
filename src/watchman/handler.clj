@@ -13,7 +13,7 @@
             clojure.walk
             [compojure.route :as route]
             [clojure.string :as string]
-            [watchman.utils :refer [sget]]
+            [watchman.utils :refer [sget sget-in]]
             [ring.util.response :refer [redirect]]
             [korma.incubator.core :as k]
             [watchman.models :as models]))
@@ -29,8 +29,10 @@
 (defsnippet index-page "index.html" [:#index-page]
   [check-statuses]
   [:tr.check-status] (clone-for [check-status check-statuses]
+                       [:.host :a] (do->
+                                    (set-attr :href (str "/roles/" (sget-in check-status [:checks :role_id])))
+                                    (content (models/get-host-display-name (sget check-status :hosts))))
                        [:.name] (content (models/get-check-display-name (sget check-status :checks)))
-                       [:.host] (content (models/get-host-display-name (sget check-status :hosts)))
                        [:.status] (do-> (add-class (sget check-status :status))
                                         (content (sget check-status :status)))))
 
