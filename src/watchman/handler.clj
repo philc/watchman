@@ -40,6 +40,7 @@
 
 (defsnippet roles-edit-page "roles_edit.html" [:#role-edit-page]
   [role]
+  [[:input (attr= :name "name")]] (set-attr :value (sget role :name))
   ; I sense a missing abstraction.
   [:tr.check] (clone-for [[i check] (->> role :checks (sort-by models/get-check-display-name) indexed)]
                 [:input.id] (do-> (set-attr :value (sget check :id))
@@ -86,6 +87,9 @@
               (if object-id
                 (if is-deleted (delete-fn) (update-fn))
                 (when-not is-deleted (insert-fn)))))]
+    (k/update models/roles
+      (k/set-fields {:name (sget params :name)})
+      (k/where {:id role-id}))
     (doseq [check checks]
       (let [check-id (-?> check :id prune-empty-string Integer/parseInt)
             check-db-fields
