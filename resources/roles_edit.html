@@ -16,6 +16,7 @@
         var newRow = clickedTableRow.parents("table").find(".row-template").clone();
         newRow.removeClass("row-template");
         newRow.attr("style", null);
+        newRow.find(".deleted").val("false");
         var rowIndex = currentRowIndex++;
         newRow.find("input").each(function(i, input) {
           input = $(input);
@@ -49,10 +50,13 @@
         <th>Max retries</th>
       </tr>
 
+      <!-- This is an HTML fragment that the javascript clones when adding a new row via the Add button.  Note
+           that these input fields get submitted with the form, so it's important that the "deleted" flag is
+           set to true in the HTML, so these fields are not persisted during submission. -->
       <tr class="row-template" style="display:none">
         <td>
           <input type="hidden" class="id" name="check[0][id]"/>
-          <input type="hidden" class="deleted" name="check[0][deleted]" value="false"/>
+          <input type="hidden" class="deleted" name="check[0][deleted]" value="true"/>
           <input type="text" class="path" name="check[0][path]"/>
         </td>
         <td><input type="text" class="nickname" name="check[0][nickname]"/></td>
@@ -89,7 +93,7 @@
       <tr class="row-template" style="display:none">
         <td>
           <input type="hidden" class="id" name="hosts[0][id]"/>
-          <input type="hidden" class="deleted" name="hosts[0][deleted]" value="false"/>
+          <input type="hidden" class="deleted" name="hosts[0][deleted]" value="true"/>
           <input type="text" class="hostname" name="hosts[0][hostname]"/>
         </td>
         <td><a href="#" class="remove">remove</a></td>
