@@ -68,8 +68,13 @@
                                        (set-attr :value (sget host :hostname)))))
 
 (deftemplate layout "layout.html"
-  [body]
-  [:#page-content] (content body))
+  [body nav]
+  [:#page-content] (content body)
+  [:nav] (content nav))
+
+(defsnippet nav "layout.html" [:nav]
+  [selected-section]
+  [(->> selected-section name (str "li.") keyword)] (add-class "selected"))
 
 (defn prune-empty-string
   "Returns nil if the string is empty."
@@ -133,15 +138,16 @@
           (k/select models/check-statuses
                     (k/with-object models/hosts)
                     (k/with-object models/checks))]
-      (layout (index-page check-statuses))))
+      (layout (index-page check-statuses) (nav :overview))))
 
   (GET "/roles" []
     (let [roles (k/select models/roles
                   (k/order :name))]
-      (layout (roles-page roles))))
+      (layout (roles-page roles) (nav :roles-edit))))
 
   (GET "/roles/new" []
-    (layout (roles-edit-page nil)))
+    (layout (roles-edit-page nil)
+            (nav :roles-edit)))
 
   (POST "/roles/new" {:keys [params]}
     (let [role-id (-> (select-keys params [:name]) models/create-role (sget :id))]
@@ -150,14 +156,16 @@
 
   (GET "/roles/:id" [id]
     (if-let [role (models/get-role-by-id (Integer/parseInt id))]
-      (layout (roles-edit-page role))
+      (layout (roles-edit-page role)
+              (nav :roles-edit))
       {:status 404 :body "Role not found."}))
 
   (POST "/roles/:id" {:keys [params]}
     (let [role-id (Integer/parseInt (:id params))]
       (if-let [role (models/get-role-by-id role-id)]
         (do (save-role-from-params params)
-            (layout (roles-edit-page (models/get-role-by-id role-id))))
+            (layout (roles-edit-page (models/get-role-by-id role-id))
+                    (nav :roles-edit)))
         {:status 404})))
 
   (route/resources "/")

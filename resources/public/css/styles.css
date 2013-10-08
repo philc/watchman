@@ -39,20 +39,20 @@ body, html {
 body {
   font-family: "Helvetica Neue", "Lucida Grande", Helvetica, Arial, Verdana, sans-serif;
   margin: 0 auto;
-  width: 1000px;
+  width: 800px;
   position: relative;
   overflow-x: hidden;
 }
 
 header {
   display: block;
-  padding: 20px;
+  padding: 40px;
   width: 100%;
 }
 
 #inner-body {
   position: relative;
-  padding: 20px;
+  padding: 0 40px;
 }
 
 #watchman-text {
@@ -78,10 +78,10 @@ header {
   font-family: Impact, "Helvetica Neue", "Lucida Grande", Helvetica, Arial, sans-serif;
   font-weight: bold;
   position: relative;
+  right: 20px;
   top: 455px;
   -webkit-transform: rotate(-90deg);
   font-size: 120px;
-  /* -webkit-transform-origin: 60% 50%; */
 }
 
 nav li { display: inline-block; }
@@ -91,12 +91,14 @@ nav li a {
   font-weight: bold;
   font-size: 20px;
   margin-right: 20px;
-  background-color: #333;
-  border: 5px solid black;
-  padding: 14px 20px;
+  padding-bottom: 15px;
   text-decoration: none;
-  color: white;
+  color: black;
 }
+
+nav li.selected a { border-bottom: 3px solid #F6CC25; }
+
+nav a:hover, nav li.selected a:hover { border-bottom: 3px solid black; }
 
 /* Index page. */
 .check-status .down {
