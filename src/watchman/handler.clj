@@ -97,7 +97,8 @@
       (let [check-id (-?> check :id prune-empty-string Integer/parseInt)
             check-db-fields
               (merge (select-keys check [:name :path :nickname])
-                     {:expected_status_code (-?> check :expected_status_code Integer/parseInt)
+                     {:expected_status_code (-?> check :expected_status_code prune-empty-string
+                                                 Integer/parseInt)
                       :timeout (-?> check :timeout prune-empty-string Double/parseDouble)
                       :role_id role-id
                       :max_retries (-?> check :max_retries prune-empty-string Integer/parseInt)})]
@@ -111,7 +112,7 @@
       (let [host-id (-?> host :id prune-empty-string Integer/parseInt)
             host-db-fields (select-keys host [:hostname])]
         (serialize-to-db-from-params host
-                                     (let [host-record-id
+                                     #(let [host-record-id
                                            (-> (or (first (k/select models/hosts
                                                             (k/where {:hostname (:hostname host)})))
                                                    (k/insert models/hosts (k/values host-db-fields)))

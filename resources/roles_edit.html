@@ -55,27 +55,29 @@
            set to true in the HTML, so these fields are not persisted during submission. -->
       <tr class="row-template" style="display:none">
         <td>
-          <input type="hidden" class="id" name="check[0][id]"/>
-          <input type="hidden" class="deleted" name="check[0][deleted]" value="true"/>
-          <input type="text" class="path" name="check[0][path]"/>
+          <input type="hidden" class="id" name="checks[0][id]"/>
+          <input type="hidden" class="deleted" name="checks[0][deleted]" value="true"/>
+          <input type="text" class="path" name="checks[0][path]"/>
         </td>
-        <td><input type="text" class="nickname" name="check[0][nickname]"/></td>
-        <td><input type="text" class="expected-status-code" name="check[0][expected_status_code]"/></td>
-        <td><input type="text" class="timeout" name="check[0][timeout]"/></td>
-        <td><input type="text" class="max-retries" name="check[0][max_retries]"/></td>
+        <td><input type="text" class="nickname" name="checks[0][nickname]"/></td>
+        <td>
+          <input type="text" class="expected-status-code" name="checks[0][expected_status_code]" value="200"/>
+        </td>
+        <td><input type="text" class="timeout" name="checks[0][timeout]" value="3"/></td>
+        <td><input type="text" class="max-retries" name="checks[0][max_retries]" value="0"/></td>
         <td><a href="#" class="remove">remove</a></td>
       </tr>
 
       <tr class="check">
         <td>
-          <input type="hidden" class="id" name="check[0][id]"/>
-          <input type="hidden" class="deleted" name="check[0][deleted]" value="false"/>
-          <input type="text" class="path" name="check[0][path]"/>
+          <input type="hidden" class="id" name="checks[0][id]"/>
+          <input type="hidden" class="deleted" name="checks[0][deleted]" value="false"/>
+          <input type="text" class="path" name="checks[0][path]"/>
         </td>
-        <td><input type="text" class="nickname" name="check[0][nickname]"/></td>
-        <td><input type="text" class="expected-status-code" name="check[0][expected_status_code]"/></td>
-        <td><input type="text" class="timeout" name="check[0][timeout]"/></td>
-        <td><input type="text" class="max-retries" name="check[0][max_retries]"/></td>
+        <td><input type="text" class="nickname" name="checks[0][nickname]"/></td>
+        <td><input type="text" class="expected-status-code" name="checks[0][expected_status_code]"/></td>
+        <td><input type="text" class="timeout" name="checks[0][timeout]"/></td>
+        <td><input type="text" class="max-retries" name="checks[0][max_retries]"/></td>
         <td><a href="#" class="remove">remove</a></td>
       </tr>
       <tr>
