@@ -10,6 +10,7 @@
             [net.cgrand.reload]
             [net.cgrand.enlive-html :refer :all]
             [clojure.java.io :as clj-io]
+            clojure.walk
             [compojure.route :as route]
             [clojure.string :as string]
             [watchman.utils :refer [sget]]
@@ -76,10 +77,12 @@
   [selected-section]
   [(->> selected-section name (str "li.") keyword)] (add-class "selected"))
 
-(defn prune-empty-string
-  "Returns nil if the string is empty."
-  [s]
-  (if (empty? s) nil s))
+(defn prune-empty-strings [m]
+  (clojure.walk/postwalk (fn [form]
+                           (if (map? form)
+                             (into {} (filter #(not= (val %) "") form))
+                             form))
+                         m))
 
 (defn save-role-from-params
   "Saves a role based on the given params. The params include the list of hosts and checks to associate
@@ -90,7 +93,7 @@
         hosts (-> params :hosts vals)
         serialize-to-db-from-params
           (fn [object insert-fn update-fn delete-fn]
-            (let [object-id (-?> object :id prune-empty-string Integer/parseInt)
+            (let [object-id (-?> object :id Integer/parseInt)
                   is-deleted (= (:deleted object) "true")]
               (if object-id
                 (if is-deleted (delete-fn) (update-fn))
@@ -99,14 +102,13 @@
       (k/set-fields {:name (sget params :name)})
       (k/where {:id role-id}))
     (doseq [check checks]
-      (let [check-id (-?> check :id prune-empty-string Integer/parseInt)
+      (let [check-id (-?> check :id Integer/parseInt)
             check-db-fields
               (merge (select-keys check [:name :path :nickname])
-                     {:expected_status_code (-?> check :expected_status_code prune-empty-string
-                                                 Integer/parseInt)
-                      :timeout (-?> check :timeout prune-empty-string Double/parseDouble)
+                     {:expected_status_code (-?> check :expected_status_code Integer/parseInt)
+                      :timeout (-?> check :timeout Double/parseDouble)
                       :role_id role-id
-                      :max_retries (-?> check :max_retries prune-empty-string Integer/parseInt)})]
+                      :max_retries (-?> check :max_retries Integer/parseInt)})]
         (serialize-to-db-from-params check
                                      #(k/insert models/checks (k/values check-db-fields))
                                      #(k/update models/checks
@@ -114,7 +116,7 @@
                                                 (k/where {:id check-id}))
                                      #(k/delete models/checks (k/where {:id check-id})))))
     (doseq [host hosts]
-      (let [host-id (-?> host :id prune-empty-string Integer/parseInt)
+      (let [host-id (-?> host :id Integer/parseInt)
             host-db-fields (select-keys host [:hostname])]
         (serialize-to-db-from-params host
                                      #(let [host-record-id
@@ -150,7 +152,8 @@
             (nav :roles-edit)))
 
   (POST "/roles/new" {:keys [params]}
-    (let [role-id (-> (select-keys params [:name]) models/create-role (sget :id))]
+    (let [params (prune-empty-strings params)
+          role-id (-> (select-keys params [:name]) models/create-role (sget :id))]
       (save-role-from-params (assoc params :id (str role-id)))
       (redirect (str "/roles/" role-id))))
 
@@ -161,7 +164,8 @@
       {:status 404 :body "Role not found."}))
 
   (POST "/roles/:id" {:keys [params]}
-    (let [role-id (Integer/parseInt (:id params))]
+    (let [params (prune-empty-strings params)
+          role-id (Integer/parseInt (:id params))]
       (if-let [role (models/get-role-by-id role-id)]
         (do (save-role-from-params params)
             (layout (roles-edit-page (models/get-role-by-id role-id))
