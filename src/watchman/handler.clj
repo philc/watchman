@@ -110,11 +110,13 @@
                       :role_id role-id
                       :max_retries (-?> check :max_retries Integer/parseInt)})]
         (serialize-to-db-from-params check
-                                     #(k/insert models/checks (k/values check-db-fields))
+                                     #(let [check-id (-> (k/insert models/checks (k/values check-db-fields))
+                                                         (sget :id))]
+                                        (models/add-check-to-role check-id role-id))
                                      #(k/update models/checks
                                                 (k/set-fields check-db-fields)
                                                 (k/where {:id check-id}))
-                                     #(k/delete models/checks (k/where {:id check-id})))))
+                                     #(models/delete-check :check-id))))
     (doseq [host hosts]
       (let [host-id (-?> host :id Integer/parseInt)
             host-db-fields (select-keys host [:hostname])]

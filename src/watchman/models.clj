@@ -80,6 +80,18 @@
            (k/set-fields row-values)
            (k/where where-map))))))
 
+(defn delete-check [check-id]
+  (transaction
+   (k/delete check-statuses (k/where {:check_id check-id}))
+   (k/delete checks (k/where {:id check-id}))))
+
+(defn add-check-to-role [check-id role-id]
+  (transaction
+   (let [host-ids (->> (k/select roles-hosts (k/where {:role_id role-id}))
+                       (map :host_id))]
+     (doseq [host-id host-ids]
+       (upsert check-statuses {:host_id host-id :check_id check-id})))))
+
 (defn add-host-to-role [host-id role-id]
   (transaction
    (upsert roles-hosts {:role_id role-id :host_id host-id})
