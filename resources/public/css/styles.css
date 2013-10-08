@@ -39,6 +39,12 @@ button, .button, input[type=submit] {
   text-align: center;
 }
 
+.example {
+  font-size: 80%;
+  color: #888;
+  font-weight: normal;
+}
+
 /*
  * Display tables.
  */
@@ -160,6 +166,7 @@ table#check-statuses td {
 }
 
 /* Roles-edit page */
+#roles-edit-page th span.example { margin-left: 8px; }
 #roles-edit-page table.display td:last-of-type { vertical-align: middle; }
 
 #roles-edit-page a.add, #roles-edit-page a.remove { text-decoration: none; }
