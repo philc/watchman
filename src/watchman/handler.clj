@@ -118,7 +118,7 @@
                                      #(k/update models/checks
                                                 (k/set-fields check-db-fields)
                                                 (k/where {:id check-id}))
-                                     #(models/delete-check :check-id))))
+                                     #(models/delete-check check-id))))
     (doseq [host hosts]
       (let [host-id (-?> host :id Integer/parseInt)
             host-db-fields (select-keys host [:hostname])]
