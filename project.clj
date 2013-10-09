@@ -1,7 +1,7 @@
 (defproject watchman "0.1.0-SNAPSHOT"
   :description "Keeping watch during the night."
   :url "http://github.com/philc/watchman"
-  :main watchman.core
+  :main watchman.handler
   ; This awt.headless=true prevents some java lib (possibly JNA) from popping up a window upon startup.
   ; http://stackoverflow.com/questions/11740012/clojure-java-pop-up-window
   :jvm-opts ["-Xmx1g" "-Xms1g" "-server" "-Djava.awt.headless=true"]
