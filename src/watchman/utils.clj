@@ -30,6 +30,15 @@
   [m ks]
   (reduce sget m ks))
 
+; Taken from http://clojuredocs.org/clojure_contrib/clojure.contrib.seq/indexed.
+(defn indexed
+  "Returns a lazy sequence of [index, item] pairs, where items come from coll and indexes count up from zero.
+  (indexed '(a b c d))  =>  ([0 a] [1 b] [2 c] [3 d])
+  (indexed '(a b c d) '(x y))  =>  ([0 a x] [1 b y])"
+  [& colls]
+  (apply map vector (iterate inc 0) colls))
+
+
 (defn- timestamp-now-millis
   "Return a string containing the timestamp of the current time, including
   milliseconds (e.g. '2013-08-14T13:54:46.960Z')."

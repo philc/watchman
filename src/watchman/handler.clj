@@ -15,7 +15,7 @@
             clojure.walk
             [compojure.route :as route]
             [clojure.string :as string]
-            [watchman.utils :refer [sget sget-in]]
+            [watchman.utils :refer [indexed sget sget-in]]
             [ring.util.response :refer [redirect]]
             [korma.incubator.core :as k]
             [watchtower.core :as watcher]
@@ -28,14 +28,6 @@
                                                          friend-creds/hash-bcrypt)
                                            :cemerick.friend/workflow :http-basic
                                            :roles #{::user}}})
-
-; Taken from http://clojuredocs.org/clojure_contrib/clojure.contrib.seq/indexed.
-(defn indexed
-  "Returns a lazy sequence of [index, item] pairs, where items come from coll and indexes count up from zero.
-  (indexed '(a b c d))  =>  ([0 a] [1 b] [2 c] [3 d])
-  (indexed '(a b c d) '(x y))  =>  ([0 a x] [1 b y])"
-  [& colls]
-  (apply map vector (iterate inc 0) colls))
 
 (defsnippet index-page "index.html" [:#index-page]
   [check-statuses]
