@@ -31,6 +31,14 @@
                                            :cemerick.friend/workflow :http-basic
                                            :roles #{::user}}})
 
+(defn- check-status-failure-message
+  "A message describing the check's failure. nil if the alert isn't in state 'down'."
+  [check-status]
+  (when (= (sget check-status :status) "down")
+    (format "Status code: %s\nBody:%s"
+            (sget check-status :last_response_status_code)
+            (sget check-status :last_response_body))))
+
 (defsnippet index-page "index.html" [:#index-page]
   [check-statuses]
   [:tr.check-status] (clone-for [check-status check-statuses]
@@ -41,7 +49,8 @@
                        [:.last-checked] (content (-> (sget check-status :last_checked_at)
                                                      time-coerce/to-date-time
                                                      friendly-timestamp-string))
-                       [:.status] (add-class (sget check-status :status))))
+                       [:.status] (add-class (sget check-status :status))
+                       [:.failure-reason] (content (check-status-failure-message check-status))))
 
 (defsnippet roles-page "roles.html" [:#roles-page]
   [roles]

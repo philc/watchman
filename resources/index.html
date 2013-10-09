@@ -1,4 +1,20 @@
 <div id="index-page">
+  <script type="text/javascript">
+    $(document).ready(function() {
+      $("td.down").click(function(event) {
+        var td = $(event.currentTarget);
+        var parentRow = td.parents("tr");
+        var nextRow = parentRow.next();
+        if (nextRow.hasClass("failure-message")) {
+          nextRow.remove();
+        } else {
+          var newRow = $("<tr class='failure-message'><td colspan=5></td></tr>");
+          newRow.find("td").append(td.find("pre").clone().css("display", ""));
+          parentRow.after(newRow);
+        }
+      });
+    });
+  </script>
   <table id="check-statuses" class="display">
     <tr>
       <th>Host</th>
@@ -16,6 +32,7 @@
         <i class="icon-ok"></i>
         <i class="icon-exclamation"></i>
         <i class="icon-question"></i>
+        <pre class="failure-reason" style="display:none"></pre>
       </td>
     </tr>
   </table>

@@ -169,9 +169,22 @@ nav a:hover, nav li.selected a:hover { border-bottom: 3px solid black; }
 table#check-statuses td {
   border-bottom: 1px solid #ddd;
   padding: 10px;
+  /* This is a workaround to prevent the td widths from shifting when we show the .failure-message. */
+  max-width: 1px;
 }
-table#check-statuses td:first-of-type { padding-left: 0; }
+table#check-statuses td:first-of-type {
+  padding-left: 0;
+  width: 100%;
+}
 table#check-statuses td:last-of-type { text-align: center; }
+
+table#check-statuses tr.failure-message { background-color: #eee; }
+table#check-statuses tr.failure-message td { text-align: left; }
+/* This response body can be long and overflow the table. */
+table#check-statuses tr.failure-message pre {
+  max-width: 700px;
+  overflow-x: scroll;
+}
 
 /* Roles-edit page */
 #roles-edit-page th span.example { margin-left: 8px; }
