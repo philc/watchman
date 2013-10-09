@@ -6,11 +6,12 @@
   ; http://stackoverflow.com/questions/11740012/clojure-java-pop-up-window
   :jvm-opts ["-Xmx1g" "-Xms1g" "-server" "-Djava.awt.headless=true"]
   :dependencies [[org.clojure/clojure "1.5.1"]
-                 [compojure "1.1.3"]
                  [enlive "1.1.4"] ; HTML transformation
                  [com.draines/postal "1.11.0"] ; For sending emails.
                  [clj-http "0.7.0"]
-                 [ring/ring-jetty-adapter "1.1.1"]
+                 [com.cemerick/friend "0.2.0"] ; For authentication.
+                 [compojure "1.1.5"]
+                 [ring/ring-jetty-adapter "1.2.0"]
                  ; Ring depends on clj-stacktrace, but 0.2.5 includes a critical bugfix.
                  ; https://github.com/mmcgrana/clj-stacktrace/issues/14
                  [clj-stacktrace "0.2.5"]

@@ -6,8 +6,9 @@
         [ring.middleware.multipart-params :only [wrap-multipart-params]]
         [ring.adapter.jetty :only [run-jetty]])
   (:require [compojure.handler :as handler]
-            [watchtower.core :as watcher]
-            [watchman.pinger :as pinger]
+            [cemerick.friend :as friend]
+            (cemerick.friend [workflows :as friend-workflows]
+                             [credentials :as friend-creds])
             [net.cgrand.reload]
             [net.cgrand.enlive-html :refer :all]
             [clojure.java.io :as clj-io]
@@ -17,7 +18,16 @@
             [watchman.utils :refer [sget sget-in]]
             [ring.util.response :refer [redirect]]
             [korma.incubator.core :as k]
+            [watchtower.core :as watcher]
+            [watchman.pinger :as pinger]
             [watchman.models :as models]))
+
+(def http-auth-username (or (System/getenv "WATCHMAN_USERNAME") "watchman"))
+(def authorized-users {http-auth-username {:username http-auth-username
+                                           :password (-> (or (System/getenv "WATCHMAN_PASSWORD") "password")
+                                                         friend-creds/hash-bcrypt)
+                                           :cemerick.friend/workflow :http-basic
+                                           :roles #{::user}}})
 
 ; Taken from http://clojuredocs.org/clojure_contrib/clojure.contrib.seq/indexed.
 (defn indexed
@@ -188,6 +198,12 @@
   (route/not-found "Not Found"))
 
 (def app (-> app-routes
+             (friend/wrap-authorize #{::user})
+             (friend/authenticate
+                   {:unauthenticated-handler #(friend-workflows/http-basic-deny "watchman" %)
+                    :workflows [(friend-workflows/http-basic
+                                 :credential-fn #(friend-creds/bcrypt-credential-fn authorized-users %)
+                                 :realm "watchman")]})
              handler/site))
 
 (defn- handle-template-file-change [files]
