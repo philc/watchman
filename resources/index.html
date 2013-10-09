@@ -13,14 +13,27 @@
           parentRow.after(newRow);
         }
       });
+      $("td.pause a").click(function(event) {
+        event.preventDefault();
+        var parentRow = $(event.target).parents("tr");
+        var newState = parentRow.attr("data-state") == "enabled" ? "paused" : "enabled";
+        $.ajax("/api/check_statuses/" + parentRow.data().checkStatusId, {
+          data: newState,
+          contentType: "text/plain",
+          type: "PUT"
+        });
+        parentRow.attr("data-state", newState);
+      });
     });
   </script>
+
   <table id="check-statuses" class="display">
-    <tr>
+    <tr data-check-status-id="sample-host-id" data-state="sample-state">
       <th>Host</th>
       <th>Alert</th>
       <th>Last checked</th>
       <th class="status">Status</th>
+      <th class="pause"></th>
     </tr>
     <tr class="check-status">
       <td class="host">
@@ -33,6 +46,12 @@
         <i class="icon-exclamation"></i>
         <i class="icon-question"></i>
         <pre class="failure-reason" style="display:none"></pre>
+      </td>
+      <td class="pause">
+        <a href="#">
+          <i class="icon-pause"></i>
+          <i class="icon-play"></i>
+        </a>
       </td>
     </tr>
   </table>

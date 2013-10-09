@@ -48,6 +48,8 @@ button:active, .button:active, input[type=submit]:active {
   outline: none;
 }
 
+i[class^="icon-"] { text-decoration: none; }
+
 .example {
   font-size: 80%;
   color: #888;
@@ -176,7 +178,16 @@ table#check-statuses td:first-of-type {
   padding-left: 0;
   width: 100%;
 }
-table#check-statuses td:last-of-type { text-align: center; }
+table#check-statuses td.status { text-align: center; }
+table#check-statuses tr[data-state="paused"] a .icon-pause { display: none; }
+table#check-statuses tr[data-state="enabled"] a .icon-play { display: none; }
+table#check-statuses tr[data-state="paused"] .status {
+  background-color: #ddd;
+  color: #999;
+}
+
+table#check-statuses th.pause, table#check-statuses td.pause { border: 0; }
+table#check-statuses td.pause a { color: #aaa; }
 
 table#check-statuses tr.failure-message { background-color: #eee; }
 table#check-statuses tr.failure-message td { text-align: left; }
@@ -186,14 +197,13 @@ table#check-statuses tr.failure-message pre {
   overflow-x: scroll;
 }
 
+
 /* Roles-edit page */
 #roles-edit-page th span.example { margin-left: 8px; }
 #roles-edit-page table.display td:last-of-type { vertical-align: middle; }
 
 #roles-edit-page a.add, #roles-edit-page a.remove { text-decoration: none; }
-
 #roles-edit-page a:hover { color: black; }
-
 #roles-edit-page a.remove { color: #cc3333; }
 
 #roles-edit-page th { white-space:nowrap; }

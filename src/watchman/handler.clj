@@ -42,6 +42,8 @@
 (defsnippet index-page "index.html" [:#index-page]
   [check-statuses]
   [:tr.check-status] (clone-for [check-status check-statuses]
+                       [:tr] (do-> (set-attr :data-check-status-id (sget check-status :id))
+                                   (set-attr :data-state (sget check-status :state)))
                        [:.host :a] (do->
                                     (set-attr :href (str "/roles/" (sget-in check-status [:checks :role_id])))
                                     (content (models/get-host-display-name (sget check-status :hosts))))
@@ -204,6 +206,17 @@
             (layout (roles-edit-page (models/get-role-by-id role-id))
                     (nav :roles-edit)))
         {:status 404})))
+
+  (PUT "/api/check_statuses/:id" {:keys [params body]}
+    (let [body (slurp body)
+          check-status-id (-> params :id Integer/parseInt)]
+      (if (#{"paused" "enabled"} body)
+        (do
+          (k/update models/check-statuses
+            (k/set-fields {:state body})
+            (k/where {:id check-status-id}))
+          {:status 200})
+        {:status 400 :body "Invalid state."})))
 
   (route/resources "/")
   (route/not-found "Not Found"))
