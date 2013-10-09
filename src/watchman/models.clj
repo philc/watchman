@@ -4,7 +4,7 @@
             [clojure.string :as string]
             [korma.db :refer [transaction]]
             [korma.incubator.core :as k :refer [belongs-to defentity has-many many-to-many]]
-            [watchman.utils :refer [sget]]
+            [watchman.utils :refer [sget sget-in]]
             [clj-time.coerce :as time-coerce])
   (:use korma.db))
 
@@ -109,20 +109,42 @@
      (k/delete check-statuses (k/where {:host_id host-id :check_id [in check-ids]}))
      (k/delete roles-hosts (k/where {:host_id host-id :role_id role-id})))))
 
+(defn get-check-status-by-id [id]
+  (first (k/select check-statuses
+           (k/where {:id id})
+           (k/with-object hosts)
+           (k/with-object checks))))
+
 (defn get-role-by-id [id]
   (first (k/select roles
            (k/where {:id id})
            (k/with-object hosts)
            (k/with-object checks))))
 
+(defn get-host-by-id [id]
+  (first (k/select hosts (k/where {:id id}))))
+
 (defn get-check-display-name [check-status]
   (or (sget check-status :nickname)
       (sget check-status :path)))
 
+(defn extract-subdomain-from-hostname
+  "Returns the subdomain of the given fully-qualified domain name.
+  Given hostname subdomain1.subdomain2.example.com, returns subdomain1.subdomain2.
+  Given example.com, returns example.com."
+  [hostname]
+  (let [parts (string/split hostname #"\.")]
+    (if (< (count parts) 3)
+      hostname
+      (string/join "." (take (- (count parts) 2) parts)))))
+
 (defn get-host-display-name [host]
   (or (sget host :nickname)
-      (sget host :hostname)))
+      (-> (sget host :hostname)
+          extract-subdomain-from-hostname)))
+
+(defn get-url-of-check-status [check-status]
+  (str "http://" (sget-in check-status [:hosts :hostname]) (sget-in check-status [:checks :path])))
 
 (defn create-role [fields]
   (k/insert roles (k/values fields)))
-
