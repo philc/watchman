@@ -12,11 +12,12 @@
                              [credentials :as friend-creds])
             [net.cgrand.reload]
             [net.cgrand.enlive-html :refer :all]
+            [clj-time.coerce :as time-coerce]
             [clojure.java.io :as clj-io]
             clojure.walk
             [compojure.route :as route]
             [clojure.string :as string]
-            [watchman.utils :refer [indexed sget sget-in]]
+            [watchman.utils :refer [friendly-timestamp-string indexed sget sget-in]]
             [ring.util.response :refer [redirect]]
             [korma.incubator.core :as k]
             [watchtower.core :as watcher]
@@ -37,8 +38,10 @@
                                     (set-attr :href (str "/roles/" (sget-in check-status [:checks :role_id])))
                                     (content (models/get-host-display-name (sget check-status :hosts))))
                        [:.name] (content (models/get-check-display-name (sget check-status :checks)))
-                       [:.status] (do-> (add-class (sget check-status :status))
-                                        (content (sget check-status :status)))))
+                       [:.last-checked] (content (-> (sget check-status :last_checked_at)
+                                                     time-coerce/to-date-time
+                                                     friendly-timestamp-string))
+                       [:.status] (add-class (sget check-status :status))))
 
 (defsnippet roles-page "roles.html" [:#roles-page]
   [roles]

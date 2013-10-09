@@ -1,16 +1,22 @@
 <div id="index-page">
-  <table id="check-statuses" class="display-table">
+  <table id="check-statuses" class="display">
     <tr>
       <th>Host</th>
       <th>Alert</th>
-      <th>Status</th>
+      <th>Last checked</th>
+      <th class="status">Status</th>
     </tr>
     <tr class="check-status">
       <td class="host">
         <a href="/roles/1">sample hostname</a>
       </td>
       <td class="name">sample name</td>
-      <td class="status">STATUS</td>
+      <td class="last-checked">Sample timestamp</td>
+      <td class="status">
+        <i class="icon-ok"></i>
+        <i class="icon-exclamation"></i>
+        <i class="icon-question"></i>
+      </td>
     </tr>
   </table>
 </div>

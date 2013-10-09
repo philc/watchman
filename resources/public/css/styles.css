@@ -71,7 +71,7 @@ table.display th, table.display td {
 
 table.display th {
   text-align: left;
-  padding: 10px;
+  padding-bottom: 10px;
   border-bottom: 1px solid #ccc;
 }
 
@@ -155,24 +155,23 @@ nav li.selected a { border-bottom: 3px solid #F6CC25; }
 nav a:hover, nav li.selected a:hover { border-bottom: 3px solid black; }
 
 /* Index page. */
+.check-status .up { background-color: #69D166; }
 .check-status .down {
-  background-color: red;
+  color: yellow;
+  background-color: #D15335;
 }
-.check-status .up {
-  background-color: green;
-}
+.check-status .unknown { background-color: #e2e2e2; }
+.check-status i { display: none; }
+.check-status .up i.icon-ok { display: inline; }
+.check-status .down i.icon-exclamation { display: inline; }
+.check-status .unknown i.icon-question { display: inline; }
 
-table#check-statuses {
-  width: 100%;
-}
-table#check-statuses th {
-  text-align: left;
-}
-table#check-statuses th:last-of-type, table#check-statuses td:last-of-type { text-align: right; }
 table#check-statuses td {
   border-bottom: 1px solid #ddd;
-  padding: 10px 0;
+  padding: 10px;
 }
+table#check-statuses td:first-of-type { padding-left: 0; }
+table#check-statuses td:last-of-type { text-align: center; }
 
 /* Roles-edit page */
 #roles-edit-page th span.example { margin-left: 8px; }
