@@ -33,7 +33,8 @@
   :plugins [[lein-ring "0.8.2"]
             [lein-lobos "1.0.0-beta1"]]
   :ring {:handler watchman.handler/app
-         :init watchman.handler/init}
+         :init watchman.handler/init
+         :port 8130}
   :profiles
   {:dev {:dependencies [[midje "1.4.0"]
                         [midje-html-checkers "1.0.1"] ; This seems to not work with midje 1.5
