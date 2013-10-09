@@ -27,6 +27,7 @@
                                               com.sun.jmx/jmxri]]
                  [cheshire "4.0.1"] ; JSON.
                  [org.clojure/core.incubator "0.1.2"] ; for the -?> operator.
+                 [overtone/at-at "1.2.0"] ; For scheduling recurring tasks.
                  [clj-time "0.4.4"]
                  [slingshot "0.10.3"]
                  [ring-mock "0.1.3"]]
