@@ -3,6 +3,7 @@
   (:use compojure.core
         [clojure.core.incubator :only [-?> -?>>]]
         [ring.middleware.session.cookie :only [cookie-store]]
+        [ring.middleware.stacktrace]
         [ring.middleware.multipart-params :only [wrap-multipart-params]]
         [ring.adapter.jetty :only [run-jetty]])
   (:require [compojure.handler :as handler]
@@ -196,6 +197,7 @@
                     :workflows [(friend-workflows/http-basic
                                  :credential-fn #(friend-creds/bcrypt-credential-fn authorized-users %)
                                  :realm "watchman")]})
+             ring.middleware.stacktrace/wrap-stacktrace
              handler/site))
 
 (defn- handle-template-file-change [files]

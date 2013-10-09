@@ -7,6 +7,7 @@
   :jvm-opts ["-Xmx1g" "-Xms1g" "-server" "-Djava.awt.headless=true"]
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [enlive "1.1.4"] ; HTML transformation
+                 [ring/ring-devel "1.2.0"] ; For displaying backtraces during requests.
                  [com.draines/postal "1.11.0"] ; For sending emails.
                  [clj-http "0.7.0"]
                  [com.cemerick/friend "0.2.0"] ; For authentication.
