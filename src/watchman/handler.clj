@@ -150,6 +150,12 @@
                     (k/with-object models/checks))]
       (layout (index-page check-statuses) (nav :overview))))
 
+  (GET "/alertz" []
+    ; Make sure we can talk to the DB
+    (if (first (k/exec-raw "select 1 from roles" :results))
+      "Healthy\n"
+      {:status 500 :body "Unable to talk to the database.\n"}))
+
   (GET "/roles" []
     (let [roles (k/select models/roles
                   (k/order :name))]
