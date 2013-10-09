@@ -1,6 +1,5 @@
 (ns watchman.models
   (:require [clj-time.core :as time-core]
-            [clj-time.coerce :as time-coerce]
             [clojure.core.incubator :refer [-?>]]
             [clojure.string :as string]
             [korma.db :refer [transaction]]
