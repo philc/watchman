@@ -1,6 +1,7 @@
 (ns watchman.models
   (:require [clj-time.core :as time-core]
             [clj-time.coerce :as time-coerce]
+            [clojure.core.incubator :refer [-?>]]
             [clojure.string :as string]
             [korma.db :refer [transaction]]
             [korma.incubator.core :as k :refer [belongs-to defentity has-many many-to-many]]
@@ -8,9 +9,7 @@
             [clj-time.coerce :as time-coerce])
   (:use korma.db))
 
-; TODO(philc): Describe the data model.
 ; TODO(philc): Consider using SQLite.
-
 (defdb watchman-db (postgres {:host (or (System/getenv "WATCHMAN_DB_HOST") "localhost")
                               :db (or (System/getenv "WATCHMAN _DB_NAME") "watchman")
                               :user (or (System/getenv "WATCHMAN_DB_USER") (System/getenv "USER"))
@@ -148,3 +147,12 @@
 
 (defn create-role [fields]
   (k/insert roles (k/values fields)))
+
+(defn ready-to-perform?
+  [check-status]
+  (let [last-checked-at (-?> (sget check-status :last_checked_at)
+                             time-coerce/to-date-time)]
+    (or (nil? last-checked-at)
+        (time-core/after? (time-core/now)
+                          (time-core/plus last-checked-at
+                                          (time-core/secs (sget-in check-status [:checks :interval])))))))

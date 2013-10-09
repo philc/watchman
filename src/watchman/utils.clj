@@ -1,11 +1,20 @@
 (ns watchman.utils
   (:require [clj-time.core :as time-core]
-   [clj-time.format :as time-format]
-   [clojure.java.io :refer [reader writer]]))
+            [clj-time.format :as time-format]
+            [clojure.java.io :refer [reader writer]]))
 
 ; dev-logging controls whether we log basic request info and exceptions to stdout, for dev workflows.
-(def ^:private dev-logging (and (not= (System/getenv "RING_ENV") "production")
-                                (not= (System/getenv "CLOJURE_ENV") "production")))
+(def ^:private dev-logging (and (not= (System/getenv "RING_ENV") "production")))
+
+(defn get-env-var
+  "Returns the env var with the given name, throwing an exception if it's blank in production."
+  ([variable-name]
+     (get-env-var variable-name true))
+  ([variable-name fail-if-blank]
+     (let [value (System/getenv variable-name)]
+       (when (and (empty? value) (= (System/getenv "RING_ENV") "production"))
+         (throw (Exception. (format "Env variable %s is blank." variable-name))))
+       value)))
 
 ; sget and sget-in (originally safe-get and safe-get-in) were lifted from the old clojure-contrib map-utils:
 ; https://github.com/richhickey/clojure-contrib/blob/master/src/main/clojure/clojure/contrib/map_utils.clj
@@ -45,8 +54,15 @@
       nil))
 
 (defn log-exception
-  "Log the supplied formatted string to the exceptions log file in an unbuffered manner. Returns nil."
+  "Log the given exception to the exceptions log file in an unbuffered manner. Returns nil."
   [preface exception]
   (let [line (format "%s %s:\n%s" (timestamp-now-millis) preface (str exception))]
     (when dev-logging (println line))
     (log-to-dated-file "log/exceptions" line)))
+
+(defn log-info
+  "Log the given string to the info log file in an unbuffered manner. Returns nil."
+  [message]
+  (let [line (format "%s %s" (timestamp-now-millis) message)]
+    (when dev-logging (println line))
+    (log-to-dated-file "log/info" line)))

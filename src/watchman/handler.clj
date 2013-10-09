@@ -7,6 +7,7 @@
         [ring.adapter.jetty :only [run-jetty]])
   (:require [compojure.handler :as handler]
             [watchtower.core :as watcher]
+            [watchman.pinger :as pinger]
             [net.cgrand.reload]
             [net.cgrand.enlive-html :refer :all]
             [clojure.java.io :as clj-io]
@@ -167,6 +168,13 @@
               (nav :roles-edit))
       {:status 404 :body "Role not found."}))
 
+  ; Redirects the user to ssh://host. We have this redirect because we can't embed links with the ssh protocol
+  ; in the body of Gmail emails.
+  (GET "/ssh_redirect" [host_id]
+    (if-let [host (models/get-host-by-id (Integer/parseInt host_id))]
+      (redirect (str "ssh://" (sget host :hostname)))
+      {:status 404 :body "Host not found."}))
+
   (POST "/roles/:id" {:keys [params]}
     (let [params (prune-empty-strings params)
           role-id (Integer/parseInt (:id params))]
@@ -190,7 +198,8 @@
   (watcher/watcher ["resources"]
                    (watcher/rate 50) ;; poll every 50ms
                    (watcher/file-filter (watcher/extensions :html)) ;; filter by extensions
-                   (watcher/on-change handle-template-file-change)))
+                   (watcher/on-change handle-template-file-change))
+  (pinger/start-periodic-polling))
 
 (defn -main []
   "Starts a Jetty webserver with our Ring app. See here for other Jetty configuration options:
