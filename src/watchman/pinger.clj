@@ -26,6 +26,8 @@
 
 (def polling-frequency-ms 5000)
 
+(def response-body-size-limit-chars 10000)
+
 (def at-at-pool (at-at/mk-pool))
 
 (def checks-in-progress
@@ -42,7 +44,7 @@
   [:#body] (html-content (-> check-status
                              (sget :last_response_body)
                              str
-                             (truncate-string 2000)
+                             (truncate-string response-body-size-limit-chars)
                              (string/replace "\n" "<br/>"))))
 (defn alert-email-plaintext
   [check-status]
@@ -52,7 +54,7 @@
                                     "%s"])]
     (format template (models/get-url-of-check-status check-status)
             (sget check-status :last_response_status_code)
-            (-> (sget check-status :last_response_body) (truncate-string 2000)))))
+            (-> (sget check-status :last_response_body) (truncate-string response-body-size-limit-chars)))))
 
 (defn send-email
   "Send an email describing the current state of a check-status."
@@ -112,7 +114,8 @@
               (k/update models/check-statuses
                 (k/set-fields {:last_checked_at (time-coerce/to-timestamp (time-core/now))
                                :last_response_status_code (:status response)
-                               :last_response_body (-> response :body (truncate-string 2000))
+                               :last_response_body (-> response :body
+                                                       (truncate-string response-body-size-limit-chars))
                                :status new-status})
                 (k/where {:id check-status-id}))
               (when (not= new-status previous-status)
