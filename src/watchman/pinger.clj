@@ -78,7 +78,7 @@
       (let [check-id (sget check-status :id)
             check (sget check-status :checks)
             host (sget-in check-status [:hosts :hostname])
-            url (format "http://%s%s" host (sget check :path))
+            url (models/get-url-of-check-status check-status)
             ; TODO(philc): Add a timeout.
             response (try (http/get url {; Don't throw exceptions on 500x status codes.
                                          :throw-exceptions false})
@@ -92,6 +92,7 @@
                        (= (:status response) (sget check :expected_status_code)))
             status-has-changed (or (and is-up (= "down" (sget check-status :status)))
                                    (and (not is-up) (= "up" (sget check-status :status))))]
+        (log-info (format "%s %s\n%s" url (:status response) (:body response)))
         (k/update models/check-statuses
           (k/set-fields {:last_checked_at (time-coerce/to-timestamp (time-core/now))
                          :last_response_status_code (:status response)
