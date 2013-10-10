@@ -74,8 +74,9 @@
                                     (set-attr :name (format "checks[%s][path]" i)))
                 [:input.nickname] (do-> (set-attr :value (sget check :nickname))
                                         (set-attr :name (format "checks[%s][nickname]" i)))
-                [:input.expected-status-code] (do-> (set-attr :value (sget check :expected_status_code))
-                                                    (set-attr :name (format"checks[%s][expected_status_code]"
+                [:input.expected-status-code] (do->
+                                               (set-attr :value (sget check :expected_status_code))
+                                               (set-attr :name (format "checks[%s][expected_status_code]" i)))
                 [:input.timeout] (do-> (set-attr :value (:timeout check))
                                        (set-attr :name (format "checks[%s][timeout]" i)))
                 [:input.max-retries] (do-> (set-attr :value (sget check :max_retries))
