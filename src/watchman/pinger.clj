@@ -7,7 +7,7 @@
             [korma.incubator.core :as k]
             [overtone.at-at :as at-at]
             [watchman.models :as models]
-            [net.cgrand.enlive-html :refer [content deftemplate do-> set-attr substitute]]
+            [net.cgrand.enlive-html :refer [content deftemplate do-> html-content set-attr substitute]]
             [watchman.utils :refer [get-env-var log-exception log-info sget sget-in]]
             [postal.core :as postal]))
 
@@ -36,8 +36,10 @@
   [:#ssh-link] (set-attr "href" (format "http://%s/ssh_redirect?host_id=%s" watchman-host
                                         (sget check-status :host_id)))
   [:#status] (substitute (str (sget check-status :last_response_status_code)))
-  [:#body] (substitute (-> check-status (sget :last_response_body) str (string/replace "\n" "<br/>"))))
-
+  [:#body] (html-content (-> check-status
+                             (sget :last_response_body)
+                             str
+                             (string/replace "\n" "<br/>"))))
 (defn alert-email-plaintext
   [check-status]
   (let [template (string/join "\n" ["%s"
