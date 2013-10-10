@@ -184,6 +184,7 @@ nav a:hover, nav li.selected a:hover { border-bottom: 3px solid black; }
 table#check-statuses td {
   border-bottom: 1px solid #ddd;
   padding: 10px;
+  font-size: 14px;
 }
 table#check-statuses td:first-of-type {
   padding-left: 0;
