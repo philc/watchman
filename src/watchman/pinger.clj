@@ -28,9 +28,9 @@
 
 (def at-at-pool (at-at/mk-pool))
 
-(def check-status-ids-in-progress
-  "Checks which have an outstanding HTTP request on the wire."
-  (atom #{}))
+(def checks-in-progress
+  "A map check-status-id -> {:in-progress, :attempt-number}. This is book keeping for handling retries."
+  (atom {}))
 
 (deftemplate alert-email-html "alert_email.html"
   [check-status]
@@ -74,42 +74,57 @@
                                  {:type "text/html; charset=utf-8" :content plaintext-body}
                                  {:type "text/html; charset=utf-8" :content html-body}]})))
 
+(defn- has-remaining-attempts? [check-status]
+  (<= (sget-in @checks-in-progress [(sget check-status :id) :attempt-number])
+      (sget-in check-status [:checks :max_retries])))
+
 (defn perform-check
   "The HTTP request and response assertions are done in a future."
   [check-status]
-  (swap! check-status-ids-in-progress conj (sget check-status :id))
-  (future
-    (try
-      ; TODO(philc): Add retry behavior.
-      (let [check-id (sget check-status :id)
-            check (sget check-status :checks)
-            host (sget-in check-status [:hosts :hostname])
-            url (models/get-url-of-check-status check-status)
-            response (try (http/get url {:conn-timeout (-> (sget check :timeout) (* 1000) int)
-                                         ; Don't throw exceptions on 500x status codes.
-                                         :throw-exceptions false})
-                          (catch ConnectTimeoutException exception
-                            {:status nil :body (format "Connection to %s timed out after %s." url
-                                                       (sget check :timeout))})
-                          (catch Exception exception
-                            ; In particular, we can get a ConnectionException if the host exists but is not
-                            ; listening on the port, or if it's an unknown host.
-                            {:status nil :body (format "Error connecting to %s: %s" url exception)}))
-            is-up (= (:status response) (sget check :expected_status_code))
-            status-has-changed (or (and is-up (= "down" (sget check-status :status)))
-                                   (and (not is-up) (= "up" (sget check-status :status))))]
-        (log-info (format "%s %s\n%s" url (:status response) (:body response)))
-        (k/update models/check-statuses
-          (k/set-fields {:last_checked_at (time-coerce/to-timestamp (time-core/now))
-                         :last_response_status_code (:status response)
-                         :last_response_body (:body response)
-                         :status (if is-up "up" "down")})
-          (k/where {:id check-id}))
-        (when status-has-changed (send-email (models/get-check-status-by-id check-id))))
-      (catch Exception exception
-        (log-exception (str "Failed to perform check. check-status id: " (sget check-status :id)) exception))
-      (finally
-        (swap! check-status-ids-in-progress disj (sget check-status :id))))))
+  (let [check-status-id (sget check-status :id)]
+    (swap! checks-in-progress (fn [old-value]
+                                (-> old-value
+                                    (assoc-in [check-status-id :in-progress] true)
+                                    (update-in [check-status-id :attempt-number] #(inc (or % 0))))))
+    (future
+      (try
+        (let [check (sget check-status :checks)
+              host (sget-in check-status [:hosts :hostname])
+              url (models/get-url-of-check-status check-status)
+              response (try (http/get url {:conn-timeout (-> (sget check :timeout) (* 1000) int)
+                                           ; Don't throw exceptions on 500x status codes.
+                                           :throw-exceptions false})
+                            (catch ConnectTimeoutException exception
+                              {:status nil :body (format "Connection to %s timed out after %s." url
+                                                         (sget check :timeout))})
+                            (catch Exception exception
+                              ; In particular, we can get a ConnectionException if the host exists but is not
+                              ; listening on the port, or if it's an unknown host.
+                              {:status nil :body (format "Error connecting to %s: %s" url exception)}))
+              is-up (= (:status response) (sget check :expected_status_code))
+              previous-status (sget check-status :status)
+              status-has-changed (or (and is-up (not= "up" previous-status))
+                                     (and (not is-up) (not= "down" previous-status)))]
+          (log-info (format "%s %s\n%s" url (:status response) (:body response)))
+          (if (or is-up (not (has-remaining-attempts? check-status)))
+            (do
+              (k/update models/check-statuses
+                (k/set-fields {:last_checked_at (time-coerce/to-timestamp (time-core/now))
+                               :last_response_status_code (:status response)
+                               :last_response_body (:body response)
+                               :status (if is-up "up" "down")})
+                (k/where {:id check-status-id}))
+              (when status-has-changed (send-email (models/get-check-status-by-id check-status-id)))
+              (swap! checks-in-progress dissoc check-status-id))
+            (do
+              (k/update models/check-statuses
+                (k/set-fields {:last_checked_at (time-coerce/to-timestamp (time-core/now))})
+                (k/where {:id check-status-id}))
+              (log-info (str "Will retry check-status id " check-status-id)))))
+        (catch Exception exception
+          (log-exception (str "Failed to perform check. check-status id: " check-status-id) exception))
+        (finally
+          (swap! checks-in-progress assoc-in [check-status-id :in-progress] false))))))
 
 (defn perform-eligible-checks
   "Performs all checks which are scheduled to run."
@@ -119,7 +134,7 @@
                          (k/with-object models/hosts)
                          (k/with-object models/checks))]
     (doseq [check-status check-statuses]
-      (when (and (nil? (@check-status-ids-in-progress (sget check-status :id)))
+      (when (and (not (get-in @checks-in-progress [(sget check-status :id) :in-progress]))
                  (models/ready-to-perform? check-status))
         (perform-check check-status)))))
 
