@@ -8,6 +8,10 @@ li { list-style-type: none; }
 
 /* General styles */
 a { color: #1987C1; }
+a:active {
+  background-color: #1987C1;
+  color: white;
+}
 
 h1 {
   margin: 16px 0;
@@ -215,8 +219,9 @@ table#check-statuses tr.failure-message pre {
 #roles-edit-page table.display td:last-of-type { vertical-align: middle; }
 
 #roles-edit-page a.add, #roles-edit-page a.remove { text-decoration: none; }
-#roles-edit-page a:hover { color: black; }
 #roles-edit-page a.remove { color: #cc3333; }
+#roles-edit-page a:hover { color: black; }
+#roles-edit-page a:active { color: white; }
 
 #roles-edit-page th { white-space:nowrap; }
 
