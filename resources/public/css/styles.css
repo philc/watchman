@@ -92,9 +92,10 @@ table.display th:last-of-type, table.display td:last-of-type {
   text-align: right;
 }
 
-body, html {
-  min-height: 100%;
+html { height: 100%; }
+body {
   background-color: #f9f9f9;
+  min-height: 100%;
 }
 
 body {
