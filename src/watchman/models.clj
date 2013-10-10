@@ -5,8 +5,8 @@
             [korma.db :refer [transaction]]
             [korma.incubator.core :as k :refer [belongs-to defentity has-many many-to-many]]
             [watchman.utils :refer [sget sget-in]]
-            [clj-time.coerce :as time-coerce])
-  (:use korma.db))
+            [clj-time.coerce :as time-coerce]
+            [korma.db :refer :all]))
 
 ; TODO(philc): Consider using SQLite.
 (defdb watchman-db (postgres {:host (or (System/getenv "WATCHMAN_DB_HOST") "localhost")
@@ -19,7 +19,6 @@
    Appends the optional suffix string arg if supplied."
   (memoize (fn [hyphenated-keyword & {:keys [suffix]}]
              (-> hyphenated-keyword name (string/replace "-" "_") (str suffix) keyword))))
-
 
 (defmacro defentity2
   "Like defentity, but automatically sets the table name to the underscorized version of the entity name"
