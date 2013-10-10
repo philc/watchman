@@ -190,6 +190,7 @@ table#check-statuses td {
   border-bottom: 1px solid #ddd;
   padding: 10px;
   font-size: 14px;
+  white-space: nowrap;
 }
 table#check-statuses td:first-of-type { padding-left: 0; }
 table td.host { width: 100%; }
