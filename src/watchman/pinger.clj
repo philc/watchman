@@ -12,15 +12,15 @@
             [postal.core :as postal])
   (:import org.apache.http.conn.ConnectTimeoutException))
 
-(def smtp-credentials {:user (get-env-var "SMTP_USER")
-                       :pass (get-env-var "SMTP_PASS")
+(def smtp-credentials {:user (get-env-var "WATCHMAN_SMTP_USERNAME")
+                       :pass (get-env-var "WATCHMAN_SMTP_PASSWORD")
                        :host "email-smtp.us-east-1.amazonaws.com"
                        :port 587})
 
-(def from-email-address (get-env-var "FROM_EMAIL_ADDRESS"))
-(def to-email-address (get-env-var "TO_EMAIL_ADDRESS"))
+(def from-email-address (get-env-var "WATCHMAN_FROM_EMAIL_ADDRESS"))
+(def to-email-address (get-env-var "WATCHMAN_TO_EMAIL_ADDRESS"))
 
-(def watchman-host (System/getenv "WATCHMAN_HOST"))
+(def watchman-host (or (System/getenv "WATCHMAN_HOST") "localhost:8130"))
 
 (def polling-frequency-ms 5000)
 
@@ -51,7 +51,9 @@
             (sget check-status :last_response_status_code)
             (sget check-status :last_response_body))))
 
-(defn send-email [check-status]
+(defn send-email
+  "Send an email describing the current state of a check-status."
+  [check-status]
   (let [host (sget check-status :hosts)
         check (sget check-status :checks)
         subject (format "%s: %s %s"
@@ -68,10 +70,11 @@
                           :subject subject
                           :body [:alternative
                                  {:type "text/html; charset=utf-8" :content plaintext-body}
-                                 {:type "text/html; charset=utf-8" :content html-body}]})
-    html-body))
+                                 {:type "text/html; charset=utf-8" :content html-body}]})))
 
-(defn perform-check [check-status]
+(defn perform-check
+  "The HTTP request and response assertions are done in a future."
+  [check-status]
   (swap! check-status-ids-in-progress conj (sget check-status :id))
   (future
     (try
@@ -106,8 +109,8 @@
       (finally
         (swap! check-status-ids-in-progress disj (sget check-status :id))))))
 
-(defn perform-checks
-  "Polls all eligible checks."
+(defn perform-eligible-checks
+  "Performs all checks which are scheduled to run."
   []
   (let [check-statuses (k/select models/check-statuses
                          (k/where {:state "enabled"})
@@ -119,10 +122,10 @@
         (perform-check check-status)))))
 
 (defn start-periodic-polling []
-  ; NOTE(philc): For some reason at-at's jobs do not run from within nREPL.
+  ; NOTE(philc): For some reason, at-at's jobs do not run from within nREPL.
   (at-at/every polling-frequency-ms
                #(try
-                  (perform-checks)
+                  (perform-eligible-checks)
                   (catch Exception exception
                     (log-exception exception)))
                at-at-pool))

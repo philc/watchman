@@ -25,13 +25,12 @@
             [watchman.models :as models]))
 
 (def http-auth-username (or (System/getenv "WATCHMAN_USERNAME") "watchman"))
+(def http-auth-password (or (System/getenv "WATCHMAN_PASSWORD") "password"))
 (def authorized-users {http-auth-username {:username http-auth-username
-                                           :password (-> (or (System/getenv "WATCHMAN_PASSWORD") "password")
-                                                         friend-creds/hash-bcrypt)
-                                           :cemerick.friend/workflow :http-basic
+                                           :password (-> http-auth-password friend-creds/hash-bcrypt)
                                            :roles #{::user}}})
 
-(defn- check-status-failure-message
+(defn- get-check-status-failure-message
   "A message describing the check's failure. nil if the alert isn't in state 'down'."
   [check-status]
   (when (= (sget check-status :status) "down")
@@ -52,7 +51,7 @@
                                                      time-coerce/to-date-time
                                                      friendly-timestamp-string))
                        [:.status] (add-class (sget check-status :status))
-                       [:.failure-reason] (content (check-status-failure-message check-status))))
+                       [:.failure-reason] (content (get-check-status-failure-message check-status))))
 
 (defsnippet roles-page "roles.html" [:#roles-page]
   [roles]
@@ -77,7 +76,6 @@
                                         (set-attr :name (format "checks[%s][nickname]" i)))
                 [:input.expected-status-code] (do-> (set-attr :value (sget check :expected_status_code))
                                                     (set-attr :name (format"checks[%s][expected_status_code]"
-                                                                           i)))
                 [:input.timeout] (do-> (set-attr :value (:timeout check))
                                        (set-attr :name (format "checks[%s][timeout]" i)))
                 [:input.max-retries] (do-> (set-attr :value (sget check :max_retries))
@@ -98,7 +96,10 @@
   [selected-section]
   [(->> selected-section name (str "li.") keyword)] (add-class "selected"))
 
-(defn prune-empty-strings [m]
+(defn prune-empty-strings
+  "Recurisely removes key/value pairs from the map where the value is an empty string. Useful for exclusing
+  blank HTTP form params."
+  [m]
   (clojure.walk/postwalk (fn [form]
                            (if (map? form)
                              (into {} (filter #(not= (val %) "") form))
@@ -108,6 +109,7 @@
 (defn save-role-from-params
   "Saves a role based on the given params. The params include the list of hosts and checks to associate
   with this role."
+  ; TODO(philc): Move all Korma queries in this fn into models.clj.
   [params]
   (let [role-id (-> (sget params :id) Integer/parseInt)
         checks (-> params :checks vals)
@@ -135,8 +137,8 @@
                                                          (sget :id))]
                                         (models/add-check-to-role check-id role-id))
                                      #(k/update models/checks
-                                                (k/set-fields check-db-fields)
-                                                (k/where {:id check-id}))
+                                        (k/set-fields check-db-fields)
+                                        (k/where {:id check-id}))
                                      #(models/delete-check check-id))))
     (doseq [host hosts]
       (let [host-id (-?> host :id Integer/parseInt)
@@ -149,8 +151,8 @@
                                                (sget :id))]
                                        (models/add-host-to-role host-record-id role-id))
                                      #(k/update models/hosts
-                                                (k/set-fields host-db-fields)
-                                                (k/where {:id host-id}))
+                                        (k/set-fields host-db-fields)
+                                        (k/where {:id host-id}))
                                      #(do
                                         (models/remove-host-from-role host-id role-id)
                                         ; If this host belongs to no other roles, go ahead and delete it.
@@ -169,19 +171,18 @@
       (layout (index-page check-statuses) (nav :overview))))
 
   (GET "/alertz" []
-    ; Make sure we can talk to the DB
+    ; TODO(philc): Alert if we've seen recent exceptions.
+    ; Make sure we can talk to the DB.
     (if (first (k/exec-raw "select 1 from roles" :results))
       "Healthy\n"
       {:status 500 :body "Unable to talk to the database.\n"}))
 
   (GET "/roles" []
-    (let [roles (k/select models/roles
-                  (k/order :name))]
+    (let [roles (k/select models/roles (k/order :name))]
       (layout (roles-page roles) (nav :roles-edit))))
 
   (GET "/roles/new" []
-    (layout (roles-edit-page nil nil)
-            (nav :roles-edit)))
+    (layout (roles-edit-page nil nil) (nav :roles-edit)))
 
   (POST "/roles/new" {:keys [params]}
     (let [params (prune-empty-strings params)
@@ -191,8 +192,7 @@
 
   (GET "/roles/:id" [id]
     (if-let [role (models/get-role-by-id (Integer/parseInt id))]
-      (layout (roles-edit-page role nil)
-              (nav :roles-edit))
+      (layout (roles-edit-page role nil) (nav :roles-edit))
       {:status 404 :body "Role not found."}))
 
   ; Redirects the user to ssh://host. We have this redirect because we can't embed links with the ssh protocol
@@ -207,8 +207,7 @@
           role-id (Integer/parseInt (:id params))]
       (if-let [role (models/get-role-by-id role-id)]
         (do (save-role-from-params params)
-            (layout (roles-edit-page (models/get-role-by-id role-id) "Changes accepted.")
-                    (nav :roles-edit)))
+            (layout (roles-edit-page (models/get-role-by-id role-id) "Changes accepted.") (nav :roles-edit)))
         {:status 404})))
 
   (PUT "/api/check_statuses/:id" {:keys [params body]}
@@ -227,11 +226,11 @@
 
 (def app (-> app-routes
              (friend/wrap-authorize #{::user})
-             (friend/authenticate
-                   {:unauthenticated-handler #(friend-workflows/http-basic-deny "watchman" %)
-                    :workflows [(friend-workflows/http-basic
-                                 :credential-fn #(friend-creds/bcrypt-credential-fn authorized-users %)
-                                 :realm "watchman")]})
+             (friend/authenticate {:unauthenticated-handler #(friend-workflows/http-basic-deny "watchman" %)
+                                   :workflows [(friend-workflows/http-basic
+                                                :credential-fn
+                                                  #(friend-creds/bcrypt-credential-fn authorized-users %)
+                                                :realm "watchman")]})
              ring.middleware.stacktrace/wrap-stacktrace
              handler/site))
 

@@ -8,7 +8,6 @@
             [clj-time.coerce :as time-coerce]
             [korma.db :refer :all]))
 
-; TODO(philc): Consider using SQLite.
 (defdb watchman-db (postgres {:host (or (System/getenv "WATCHMAN_DB_HOST") "localhost")
                               :db (or (System/getenv "WATCHMAN _DB_NAME") "watchman")
                               :user (or (System/getenv "WATCHMAN_DB_USER") (System/getenv "USER"))
@@ -98,7 +97,6 @@
      (doseq [check-id check-ids]
        (upsert check-statuses {:host_id host-id :check_id check-id})))))
 
-
 (defn remove-host-from-role [host-id role-id]
   (transaction
    (let [check-ids (->> (k/select checks (k/where {:role_id role-id}))
@@ -147,6 +145,7 @@
   (k/insert roles (k/values fields)))
 
 (defn ready-to-perform?
+  "True if enough time has elapsed since we last checked this alert."
   [check-status]
   (let [last-checked-at (-?> (sget check-status :last_checked_at)
                              time-coerce/to-date-time)]
