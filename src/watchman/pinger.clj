@@ -9,7 +9,8 @@
             [watchman.models :as models]
             [net.cgrand.enlive-html :refer [content deftemplate do-> html-content set-attr substitute]]
             [watchman.utils :refer [get-env-var log-exception log-info sget sget-in]]
-            [postal.core :as postal]))
+            [postal.core :as postal])
+  (:import org.apache.http.conn.ConnectTimeoutException))
 
 (def smtp-credentials {:user (get-env-var "SMTP_USER")
                        :pass (get-env-var "SMTP_PASS")
@@ -79,30 +80,29 @@
             check (sget check-status :checks)
             host (sget-in check-status [:hosts :hostname])
             url (models/get-url-of-check-status check-status)
-            ; TODO(philc): Add a timeout.
-            response (try (http/get url {; Don't throw exceptions on 500x status codes.
+            response (try (http/get url {:conn-timeout (-> (sget check :timeout) (* 1000) int)
+                                         ; Don't throw exceptions on 500x status codes.
                                          :throw-exceptions false})
-                          ; We can get a ConnectionException if the host exists but is not listening on
-                          ; the port, or if it's an unknown host.
+                          (catch ConnectTimeoutException exception
+                            {:status nil :body (format "Connection to %s timed out after %s." url
+                                                       (sget check :timeout))})
                           (catch Exception exception
-                            ; TODO(philc): Make sure this case is handled well, and that the email looks good.
-                            (log-exception (str "Error when requesting " url) exception)
-                            nil))
-            is-up (and response
-                       (= (:status response) (sget check :expected_status_code)))
+                            ; In particular, we can get a ConnectionException if the host exists but is not
+                            ; listening on the port, or if it's an unknown host.
+                            {:status nil :body (format "Error connecting to %s: %s" url exception)}))
+            is-up (= (:status response) (sget check :expected_status_code))
             status-has-changed (or (and is-up (= "down" (sget check-status :status)))
                                    (and (not is-up) (= "up" (sget check-status :status))))]
         (log-info (format "%s %s\n%s" url (:status response) (:body response)))
         (k/update models/check-statuses
           (k/set-fields {:last_checked_at (time-coerce/to-timestamp (time-core/now))
                          :last_response_status_code (:status response)
-                         :last_response_body (or (:body response)
-                                                 (str "Unknown host " host))
+                         :last_response_body (:body response)
                          :status (if is-up "up" "down")})
           (k/where {:id check-id}))
         (when status-has-changed (send-email (models/get-check-status-by-id check-id))))
       (catch Exception exception
-        (log-exception (str "Failed to perform check-status. Id: " (check-status :id)) exception))
+        (log-exception (str "Failed to perform check. check-status id: " (sget check-status :id)) exception))
       (finally
         (swap! check-status-ids-in-progress disj (sget check-status :id))))))
 
