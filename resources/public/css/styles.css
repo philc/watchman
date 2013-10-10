@@ -93,7 +93,7 @@ table.display th:last-of-type, table.display td:last-of-type {
 }
 
 body, html {
-  height: 100%;
+  min-height: 100%;
   background-color: #f9f9f9;
 }
 
@@ -133,10 +133,11 @@ header {
 
 #black-edge {
   position: absolute;
-  width: 100%;
+  width: 3000px;
   top: 0;
   height: 100%;
-  left: -100%;
+  right: 50%;
+  margin-right: 400px;
   background-color: black;
 }
 
