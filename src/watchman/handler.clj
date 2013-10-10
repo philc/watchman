@@ -240,14 +240,16 @@
 
 (defn init []
   ; Reload this namespace and its templates when one of the templates changes.
-  (watcher/watcher ["resources"]
-                   (watcher/rate 50) ;; poll every 50ms
-                   (watcher/file-filter (watcher/extensions :html)) ;; filter by extensions
-                   (watcher/on-change handle-template-file-change))
+  (when-not (= (System/getenv "RING_ENV") "production")
+    (watcher/watcher ["resources"]
+                     (watcher/rate 50) ;; poll every 50ms
+                     (watcher/file-filter (watcher/extensions :html)) ;; filter by extensions
+                     (watcher/on-change handle-template-file-change)))
   (pinger/start-periodic-polling))
 
 (defn -main []
   "Starts a Jetty webserver with our Ring app. See here for other Jetty configuration options:
    http://ring-clojure.github.com/ring/ring.adapter.jetty.html"
   (let [port (Integer/parseInt (or (System/getenv "PORT") "8130"))]
+    (init)
     (run-jetty app {:port port})))
