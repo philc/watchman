@@ -217,6 +217,10 @@ table#check-statuses tr.failure-message pre {
   overflow-x: scroll;
 }
 
+/*
+ * Roles page.
+ */
+#roles-page li { margin: 8px 0; }
 
 /*
  * Roles-edit page
