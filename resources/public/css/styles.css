@@ -119,6 +119,9 @@ header {
   width: 150px;
   background-color: black;
   color: #F6CC25; /* Yellow */
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
 }
 
 #black-edge {
