@@ -175,13 +175,13 @@ nav a:hover, nav li.selected a:hover { border-bottom: 3px solid black; }
   left: 40px;
   top: -10px;
 }
-.check-status a { display: block; }
+.check-status .status a { display: block; }
 .check-status .up { background-color: #69D166; }
 .check-status .up a { color: black; }
 .check-status .down { background-color: #D15335; }
 .check-status .down a { color: yellow; }
 .check-status .unknown { background-color: #e2e2e2; }
-.check-status a i { display: none; }
+.check-status .status a i { display: none; }
 .check-status .up a i.icon-ok { display: inline; }
 .check-status .down a i.icon-exclamation { display: inline; }
 .check-status .unknown a i.icon-question { display: inline; }
