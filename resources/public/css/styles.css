@@ -148,7 +148,6 @@ header {
 }
 
 nav li { display: inline-block; }
-
 nav li a {
   display: inline-block;
   font-weight: bold;
@@ -158,9 +157,11 @@ nav li a {
   text-decoration: none;
   color: black;
 }
-
+nav li a:active {
+  color: #666;
+  background: none;
+}
 nav li.selected a { border-bottom: 3px solid #F6CC25; }
-
 nav a:hover, nav li.selected a:hover { border-bottom: 3px solid black; }
 
 /* Index page. */
