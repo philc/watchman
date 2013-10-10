@@ -195,7 +195,10 @@ table#check-statuses td {
   white-space: nowrap;
 }
 table#check-statuses td:first-of-type { padding-left: 0; }
+
 table td.host { width: 100%; }
+table#check-statuses td.last-checked, table#check-statuses th.last-checked { text-align: right; }
+
 table#check-statuses td.status { text-align: center; }
 table#check-statuses tr[data-state="paused"] a .icon-pause { display: none; }
 table#check-statuses tr[data-state="enabled"] a .icon-play { display: none; }
