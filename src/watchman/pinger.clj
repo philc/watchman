@@ -81,7 +81,6 @@
   (<= (sget-in @checks-in-progress [(sget check-status :id) :attempt-number])
       (sget-in check-status [:checks :max_retries])))
 
-
 (defn perform-check
   "The HTTP request and response assertions are done in a future."
   [check-status]
@@ -99,7 +98,7 @@
                                            ; Don't throw exceptions on 500x status codes.
                                            :throw-exceptions false})
                             (catch ConnectTimeoutException exception
-                              {:status nil :body (format "Connection to %s timed out after %s." url
+                              {:status nil :body (format "Connection to %s timed out after %ss." url
                                                          (sget check :timeout))})
                             (catch Exception exception
                               ; In particular, we can get a ConnectionException if the host exists but is not
