@@ -1,4 +1,6 @@
-/* Style resets. */
+/*
+ * Style resets.
+ */
 * {
   margin: 0;
   padding: 0;
@@ -6,7 +8,9 @@
 
 li { list-style-type: none; }
 
-/* General styles */
+/*
+ * General styles
+ */
 a { color: #1987C1; }
 a:active {
   background-color: #1987C1;
@@ -163,7 +167,9 @@ nav li a:active {
 nav li.selected a { border-bottom: 3px solid #F6CC25; }
 nav a:hover, nav li.selected a:hover { border-bottom: 3px solid black; }
 
-/* Index page. */
+/*
+ * Index page.
+ */
 #order-by {
   position: absolute;
   left: 40px;
@@ -211,7 +217,9 @@ table#check-statuses tr.failure-message pre {
 }
 
 
-/* Roles-edit page */
+/*
+ * Roles-edit page
+ */
 #flash-message {
   padding: 10px;
   background-color: #FFEFC2;
