@@ -42,6 +42,9 @@
   [m ks]
   (reduce sget m ks))
 
+(defn truncate-string [s length]
+  (subs (str s) 0 (min length (count (str s)))))
+
 ; Taken from http://clojuredocs.org/clojure_contrib/clojure.contrib.seq/indexed.
 (defn indexed
   "Returns a lazy sequence of [index, item] pairs, where items come from coll and indexes count up from zero.

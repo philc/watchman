@@ -8,7 +8,7 @@
             [overtone.at-at :as at-at]
             [watchman.models :as models]
             [net.cgrand.enlive-html :refer [content deftemplate do-> html-content set-attr substitute]]
-            [watchman.utils :refer [get-env-var log-exception log-info sget sget-in]]
+            [watchman.utils :refer [get-env-var log-exception log-info sget sget-in truncate-string]]
             [postal.core :as postal])
   (:import org.apache.http.conn.ConnectTimeoutException))
 
@@ -42,6 +42,7 @@
   [:#body] (html-content (-> check-status
                              (sget :last_response_body)
                              str
+                             (truncate-string 2000)
                              (string/replace "\n" "<br/>"))))
 (defn alert-email-plaintext
   [check-status]
@@ -51,7 +52,7 @@
                                     "%s"])]
     (format template (models/get-url-of-check-status check-status)
             (sget check-status :last_response_status_code)
-            (sget check-status :last_response_body))))
+            (-> (sget check-status :last_response_body) (truncate-string 2000)))))
 
 (defn send-email
   "Send an email describing the current state of a check-status."
@@ -78,6 +79,7 @@
   (<= (sget-in @checks-in-progress [(sget check-status :id) :attempt-number])
       (sget-in check-status [:checks :max_retries])))
 
+
 (defn perform-check
   "The HTTP request and response assertions are done in a future."
   [check-status]
@@ -103,18 +105,18 @@
                               {:status nil :body (format "Error connecting to %s: %s" url exception)}))
               is-up (= (:status response) (sget check :expected_status_code))
               previous-status (sget check-status :status)
-              status-has-changed (or (and is-up (not= "up" previous-status))
-                                     (and (not is-up) (not= "down" previous-status)))]
-          (log-info (format "%s %s\n%s" url (:status response) (:body response)))
+              new-status (if is-up "up" "down")]
+          (log-info (format "%s %s\n%s" url (:status response) (-> response :body (truncate-string 300))))
           (if (or is-up (not (has-remaining-attempts? check-status)))
             (do
               (k/update models/check-statuses
                 (k/set-fields {:last_checked_at (time-coerce/to-timestamp (time-core/now))
                                :last_response_status_code (:status response)
-                               :last_response_body (:body response)
-                               :status (if is-up "up" "down")})
+                               :last_response_body (-> response :body (truncate-string 2000))
+                               :status new-status})
                 (k/where {:id check-status-id}))
-              (when status-has-changed (send-email (models/get-check-status-by-id check-status-id)))
+              (when (not= new-status previous-status)
+                (send-email (models/get-check-status-by-id check-status-id)))
               (swap! checks-in-progress dissoc check-status-id))
             (do
               (k/update models/check-statuses
