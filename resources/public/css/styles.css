@@ -74,7 +74,6 @@ table.display th, table.display td {
   width: 100%;
   vertical-align: bottom;
 }
-
 table.display th {
   text-align: left;
   padding-bottom: 10px;
@@ -186,10 +185,8 @@ table#check-statuses td {
   padding: 10px;
   font-size: 14px;
 }
-table#check-statuses td:first-of-type {
-  padding-left: 0;
-  width: 100%;
-}
+table#check-statuses td:first-of-type { padding-left: 0; }
+table td.host { width: 100%; }
 table#check-statuses td.status { text-align: center; }
 table#check-statuses tr[data-state="paused"] a .icon-pause { display: none; }
 table#check-statuses tr[data-state="enabled"] a .icon-play { display: none; }
@@ -202,10 +199,14 @@ table#check-statuses th.pause, table#check-statuses td.pause { border: 0; }
 table#check-statuses td.pause a { color: #aaa; }
 
 table#check-statuses tr.failure-message { background-color: #eee; }
-table#check-statuses tr.failure-message td { text-align: left; }
+table#check-statuses tr.failure-message td {
+  /* This is a workaround to prevent long failure messages from distorting the table's cell spacing. */
+  max-width: 1px;
+  text-align: left;
+}
 /* This response body can be long and overflow the table. */
 table#check-statuses tr.failure-message pre {
-  max-width: 700px;
+  max-width: 690px;
   overflow-x: scroll;
 }
 
