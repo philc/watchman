@@ -1,8 +1,8 @@
 <div id="index-page">
   <script type="text/javascript">
     $(document).ready(function() {
-      $("td.down").click(function(event) {
-        var td = $(event.currentTarget);
+      $("td.down a").click(function(event) {
+        var td = $(event.currentTarget).parents("td");
         var parentRow = td.parents("tr");
         var nextRow = parentRow.next();
         if (nextRow.hasClass("failure-message")) {
@@ -47,9 +47,11 @@
       <td class="name">sample name</td>
       <td class="last-checked">Sample timestamp</td>
       <td class="status">
-        <i class="icon-ok"></i>
-        <i class="icon-exclamation"></i>
-        <i class="icon-question"></i>
+        <a href="#">
+          <i class="icon-ok"></i>
+          <i class="icon-exclamation"></i>
+          <i class="icon-question"></i>
+        </a>
         <pre class="failure-reason" style="display:none"></pre>
       </td>
       <td class="pause">
