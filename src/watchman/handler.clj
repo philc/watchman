@@ -63,8 +63,9 @@
 ; The editing UI for a role and its associated checks and hosts.
 ; - role: nil if this page is to render a new, unsaved role."
 (defsnippet roles-edit-page "roles_edit.html" [:#roles-edit-page]
-  [role]
+  [role flash-message]
   [[:input (attr= :name "name")]] (set-attr :value (:name role))
+  [:#flash-message] (if flash-message (content flash-message) (substitute nil))
   ; I sense a missing abstraction.
   [:tr.check] (clone-for [[i check] (->> role :checks (sort-by models/get-check-display-name) indexed)]
                 [:input.id] (do-> (set-attr :value (sget check :id))
@@ -179,7 +180,7 @@
       (layout (roles-page roles) (nav :roles-edit))))
 
   (GET "/roles/new" []
-    (layout (roles-edit-page nil)
+    (layout (roles-edit-page nil nil)
             (nav :roles-edit)))
 
   (POST "/roles/new" {:keys [params]}
@@ -190,7 +191,7 @@
 
   (GET "/roles/:id" [id]
     (if-let [role (models/get-role-by-id (Integer/parseInt id))]
-      (layout (roles-edit-page role)
+      (layout (roles-edit-page role nil)
               (nav :roles-edit))
       {:status 404 :body "Role not found."}))
 
@@ -206,7 +207,7 @@
           role-id (Integer/parseInt (:id params))]
       (if-let [role (models/get-role-by-id role-id)]
         (do (save-role-from-params params)
-            (layout (roles-edit-page (models/get-role-by-id role-id))
+            (layout (roles-edit-page (models/get-role-by-id role-id) "Changes accepted.")
                     (nav :roles-edit)))
         {:status 404})))
 

@@ -204,6 +204,10 @@ table#check-statuses tr.failure-message pre {
 
 
 /* Roles-edit page */
+#flash-message {
+  padding: 10px;
+  background-color: #FFEFC2;
+}
 #roles-edit-page th span.example { margin-left: 8px; }
 #roles-edit-page table.display td:last-of-type { vertical-align: middle; }
 
