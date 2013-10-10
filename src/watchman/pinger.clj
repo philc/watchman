@@ -14,7 +14,9 @@
 
 (def smtp-credentials {:user (get-env-var "WATCHMAN_SMTP_USERNAME")
                        :pass (get-env-var "WATCHMAN_SMTP_PASSWORD")
-                       :host "email-smtp.us-east-1.amazonaws.com"
+                       :host (or (get-env-var "WATCHMAN_SMTP_HOST")
+                                 ; Default to Amazon's Simple Email Service.
+                                 "email-smtp.us-east-1.amazonaws.com")
                        :port 587})
 
 (def from-email-address (get-env-var "WATCHMAN_FROM_EMAIL_ADDRESS"))
