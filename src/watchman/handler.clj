@@ -157,11 +157,14 @@
                                           (k/delete models/hosts (k/where {:id host-id})))))))))
 
 (defroutes app-routes
-  (GET "/" []
-    (let [check-statuses
-          (k/select models/check-statuses
-                    (k/with-object models/hosts)
-                    (k/with-object models/checks))]
+  (GET "/" {:keys [params]}
+    (let [sort-key-fn (if (= (:order params) "hosts")
+                        #(vector (sget-in % [:hosts :hostname]) (sget-in % [:checks :path]))
+                        #(vector (sget % :status) (sget-in % [:hosts :hostname]) (sget-in % [:checks :path])))
+          check-statuses (->> (k/select models/check-statuses
+                                (k/with-object models/hosts)
+                                (k/with-object models/checks))
+                              (sort-by sort-key-fn))]
       (layout (index-page check-statuses) (nav :overview))))
 
   (GET "/alertz" []

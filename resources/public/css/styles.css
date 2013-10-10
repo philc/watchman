@@ -157,6 +157,11 @@ nav li.selected a { border-bottom: 3px solid #F6CC25; }
 nav a:hover, nav li.selected a:hover { border-bottom: 3px solid black; }
 
 /* Index page. */
+#order-by {
+  position: absolute;
+  left: 40px;
+  top: -10px;
+}
 .check-status .up { background-color: #69D166; }
 .check-status .down {
   color: yellow;
