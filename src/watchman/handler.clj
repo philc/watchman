@@ -35,7 +35,7 @@
   "A message describing the check's failure. nil if the alert isn't in state 'down'."
   [check-status]
   (when (= (sget check-status :status) "down")
-    (format "Status code: %s\nBody:%s"
+    (format "Status code: %s\nBody:\n%s"
             (sget check-status :last_response_status_code)
             (sget check-status :last_response_body))))
 
