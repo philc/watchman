@@ -71,7 +71,6 @@
 
 (defn perform-check [check-status]
   (swap! check-status-ids-in-progress conj (sget check-status :id))
-  (log-info (str "scheduling future of check-status" (:id check-status)))
   (future
     (try
       ; TODO(philc): Add retry behavior.
@@ -121,7 +120,6 @@
   ; NOTE(philc): For some reason at-at's jobs do not run from within nREPL.
   (at-at/every polling-frequency-ms
                #(try
-                  (log-info "running at-at")
                   (perform-checks)
                   (catch Exception exception
                     (log-exception exception)))
