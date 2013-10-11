@@ -10,7 +10,6 @@
             [cemerick.friend :as friend]
             (cemerick.friend [workflows :as friend-workflows]
                              [credentials :as friend-creds])
-            [net.cgrand.reload]
             [net.cgrand.enlive-html :refer :all]
             [clj-time.coerce :as time-coerce]
             [clojure.java.io :as clj-io]
