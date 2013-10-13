@@ -138,7 +138,9 @@
       (-> (sget host :hostname)
           extract-subdomain-from-hostname)))
 
-(defn get-url-of-check-status [check-status]
+(defn get-url-of-check-status
+  "The URL (hostname plus path) that a check-status checks."
+  [check-status]
   (str "http://" (sget-in check-status [:hosts :hostname]) (sget-in check-status [:checks :path])))
 
 (defn create-role [fields]
