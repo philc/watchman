@@ -40,29 +40,43 @@
                       (content (models/get-url-of-check-status check-status)))
   [:#ssh-link] (set-attr "href" (format "http://%s/ssh_redirect?host_id=%s" watchman-host
                                         (sget check-status :host_id)))
-  [:#status] (substitute (str (sget check-status :last_response_status_code)))
-  [:#body] (html-content (-> check-status
-                             (sget :last_response_body)
-                             str
-                             (truncate-string response-body-size-limit-chars)
-                             (string/replace "\n" "<br/>"))))
+  [:#status] (substitute (sget check-status :status))
+  [:#http-status] (substitute (str (sget check-status :last_response_status_code)))
+  [:#additional-details] (if (= (sget check-status :status) "down")
+                           identity
+                           (substitute nil))
+  [:#response-body] (if (= (sget check-status :status) "up")
+                      (substitute nil)
+                      (html-content (-> check-status
+                                        (sget :last_response_body)
+                                        str
+                                        (truncate-string response-body-size-limit-chars)
+                                        (string/replace "\n" "<br/>")))))
 (defn alert-email-plaintext
   [check-status]
-  (let [template (string/join "\n" ["%s"
-                                    "HTTP status: %s"
-                                    "Body:"
-                                    "%s"])]
-    (format template (models/get-url-of-check-status check-status)
-            (sget check-status :last_response_status_code)
-            (-> (sget check-status :last_response_body) (truncate-string response-body-size-limit-chars)))))
+  (let [status (sget check-status :status)
+        url (models/get-url-of-check-status check-status)
+        up-template (string/join "\n" ["%s"
+                                       "Status: %s"])
+        down-template (string/join "\n" ["%s"
+                                         "Status: %s"
+                                         "HTTP status code: %s"
+                                         "Body:"
+                                         "%s"])]
+    (if (= status "up")
+      (format up-template url status)
+      (format down-template
+              url
+              status
+              (sget check-status :last_response_status_code)
+              (-> (sget check-status :last_response_body) (truncate-string response-body-size-limit-chars))))))
 
 (defn send-email
   "Send an email describing the current state of a check-status."
   [check-status]
   (let [host (sget check-status :hosts)
         check (sget check-status :checks)
-        subject (format "%s: [%s] %s %s"
-                        (-> check-status (sget :status) string/capitalize)
+        subject (format "[%s] %s %s"
                         (-> (sget check :role_id) (models/get-role-by-id) (sget :name))
                         (models/get-host-display-name host)
                         (models/get-check-display-name check))
