@@ -8,3 +8,5 @@ pom.xml
 log/*.log
 .lein-repl-history
 target/
+.vagrant
+ansible/vars/env.yml

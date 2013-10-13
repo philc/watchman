@@ -1,0 +1,96 @@
+---
+- name : setup and deploy
+  hosts: "{{ hosts }}"
+  vars_files:
+    - vars/env.yml
+  tasks:
+    - name: apt-get update
+      apt: update_cache=yes cache_valid_time=2592000 # one month in seconds
+      sudo: true
+
+    - name: apt-get install packages
+      apt: pkg={{ item }}
+      sudo: true
+      with_items:
+        - curl
+        - ntp
+        - vim
+        - htop
+        - runit
+        - tmux
+        - openjdk-6-jre-headless
+        - nginx
+        - python-dev
+        - python-psycopg2
+        - postgresql
+        - libpq-dev
+
+    - name: create postgres user
+      postgresql_user: name="{{ ansible_ssh_user }}" role_attr_flags="SUPERUSER,CREATEROLE,CREATEDB"
+                       state=present password="{{ env['watchman_db_pass'] }}"
+      sudo: true
+      sudo_user: postgres
+
+    - name: create watchman db
+      postgresql_db: name=watchman login_user="{{ ansible_ssh_user }}"
+
+    - name: create ~/bin directory
+      file: state=directory path=~/bin
+
+    - name: add ~/bin to PATH
+      lineinfile: dest=~/.bashrc state=present regexp="^export PATH=~/bin" line="export PATH=~/bin:$PATH"
+
+    - name: install lein in ~/bin
+      get_url: dest=~/bin/lein url="https://raw.github.com/technomancy/leiningen/stable/bin/lein"
+
+    - name: make lein executable
+      file: path=~/bin/lein mode=755
+
+    - name: create watchman deploy directory
+      file: path=/opt/watchman state=directory owner="{{ ansible_ssh_user }}"
+      sudo: true
+
+    - name: remove default nginx config
+      file: state=absent path=/etc/nginx/sites-enabled/default
+      sudo: true
+      notify:
+        - restart nginx
+
+    - name: copy nginx conf file
+      copy: src=templates/watchman.nginx.conf
+            dest=/etc/nginx/sites-enabled/watchman.nginx.conf
+      sudo: true
+      notify:
+        - restart nginx
+
+    - name: compile project
+      local_action: command lein uberjar
+
+    - name: rsync project
+      local_action: >
+        command rsync -az --checksum --itemize-changes --exclude=.git --exclude=.vagrant
+        .. {{ inventory_hostname }}:/opt/watchman
+      register: rsync
+      changed_when: rsync.stdout_lines|length > 0
+
+    - name: create environment file
+      template: dest=/opt/watchman/environment.sh src=templates/environment.sh.j2 validate=". %s"
+
+    - name: run migrations
+      shell: cd /opt/watchman && . ./environment.sh && ~/bin/lein lobos migrate
+      register: migrations
+      changed_when: migrations.stdout_lines|length > 0
+
+    - name: register watchman with runit
+      file: state=link src=/opt/watchman/runit dest=/etc/service/watchman
+      sudo: true
+
+    - name: restart watchman
+      command: sv restart watchman
+      ignore_errors: true
+      sudo: true
+
+  handlers:
+    - name: restart nginx
+      command: /etc/init.d/nginx restart
+      sudo: true

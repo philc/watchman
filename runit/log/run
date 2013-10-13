@@ -1,0 +1,4 @@
+#!/bin/sh
+
+mkdir -p /var/log/watchman/
+exec svlogd -ttt /var/log/watchman/
