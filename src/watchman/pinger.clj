@@ -61,8 +61,9 @@
   [check-status]
   (let [host (sget check-status :hosts)
         check (sget check-status :checks)
-        subject (format "%s: %s %s"
+        subject (format "%s: [%s] %s %s"
                         (-> check-status (sget :status) string/capitalize)
+                        (-> (sget check :role_id) (models/get-role-by-id) (sget :name))
                         (models/get-host-display-name host)
                         (models/get-check-display-name check))
         html-body (string/join (alert-email-html check-status))
