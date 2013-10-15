@@ -1,8 +1,6 @@
 ---
 - name : setup and deploy
   hosts: "{{ hosts }}"
-  vars_files:
-    - vars/env.yml
   tasks:
     - name: apt-get update
       apt: update_cache=yes cache_valid_time=2592000 # one month in seconds

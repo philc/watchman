@@ -1,14 +1,16 @@
 # Watchman
 
+Details coming soon.
+
 ## Developing
 
-To deploy watchman locally to a vagrant vm:
+To deploy Watchman locally to a Vagrant VM:
 
-- acquire the env.yml secrets file and place it in ansible/vars
-- run the following:
+- Flesh out the yaml file in ansible/group_vars/vagrant to suit your needs.
+- Run the following to setup vagrant:
 
-        vagrant ssh-config --host watchman-vagrant >> ~/.ssh/config
         vagrant up
+        vagrant ssh-config --host watchman-vagrant >> ~/.ssh/config
         ansible-playbook ansible/watchman.yml -i ansible/hosts -e 'hosts=vagrant'
 
-- visit http://localhost:8010
+- Visit http://localhost:8010. The vagrant VM's port 80 is forwarded over 8010.
