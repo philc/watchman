@@ -12,6 +12,8 @@
             [postal.core :as postal])
   (:import org.apache.http.conn.ConnectTimeoutException))
 
+(def log-emails-without-sending (= "true" (System/getenv "WATCHMAN_LOG_EMAILS_WITHOUT_SENDING")))
+
 (def smtp-credentials {:user (get-env-var "WATCHMAN_SMTP_USERNAME")
                        :pass (get-env-var "WATCHMAN_SMTP_PASSWORD")
                        :host (or (get-env-var "WATCHMAN_SMTP_HOST")
@@ -81,16 +83,18 @@
                         (models/get-host-display-name host)
                         (models/get-check-display-name check))
         html-body (string/join (alert-email-html check-status))
-        plaintext-body (alert-email-plaintext check-status)]
+        plaintext-body (alert-email-plaintext check-status)
+        email-message {:from from-email-address
+                       :to to-email-address
+                       :subject subject
+                       :body [:alternative
+                              {:type "text/html; charset=utf-8" :content plaintext-body}
+                              {:type "text/html; charset=utf-8" :content html-body}]}]
     (log-info (format "Emailing for check-status %s: %s %s" (sget check-status :id)
                       (sget host :hostname) (sget check-status :status)))
-    (postal/send-message smtp-credentials
-                         {:from from-email-address
-                          :to to-email-address
-                          :subject subject
-                          :body [:alternative
-                                 {:type "text/html; charset=utf-8" :content plaintext-body}
-                                 {:type "text/html; charset=utf-8" :content html-body}]})))
+    (if log-emails-without-sending
+      (prn email-message)
+      (postal/send-message smtp-credentials email-message))))
 
 (defn- has-remaining-attempts? [check-status]
   (<= (sget-in @checks-in-progress [(sget check-status :id) :attempt-number])
