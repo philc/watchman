@@ -16,17 +16,22 @@
          (throw (Exception. (format "Env variable %s is blank." variable-name))))
        value)))
 
+; Example: 22 Oct, 2013
+(def time-formatter (time-format/formatter "d MMM, YYYY"))
+
 (defn friendly-timestamp-string
   "For the given time, returns N secs ago, N minutes ago, or the full timestamp."
   [t]
   (let [seconds-ago (int (time-core/in-secs (time-core/interval t (time-core/now))))
         minutes-ago (int (/ seconds-ago 60))
-        hours-ago (int (/ minutes-ago 60))]
+        hours-ago (int (/ minutes-ago 60))
+        days-ago (int (/ hours-ago 24))]
     (cond
      (< seconds-ago 60) (str seconds-ago "s ago")
      (< minutes-ago 60) (str minutes-ago "m ago")
      (< hours-ago 12) (str hours-ago "h ago")
-     :else (time-format/unparse (time-format/formatters :date-time) t))))
+     (< days-ago 15) (str days-ago " days ago")
+     :else (time-format/unparse time-formatter t))))
 
 ; sget and sget-in (originally safe-get and safe-get-in) were lifted from the old clojure-contrib map-utils:
 ; https://github.com/richhickey/clojure-contrib/blob/master/src/main/clojure/clojure/contrib/map_utils.clj
