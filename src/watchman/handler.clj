@@ -127,7 +127,7 @@
     (doseq [check checks]
       (let [check-id (-?> check :id Integer/parseInt)
             check-db-fields
-              (merge (select-keys check [:name :path :nickname])
+              (merge (select-keys check [:path :nickname])
                      {:expected_status_code (-?> check :expected_status_code Integer/parseInt)
                       :timeout (-?> check :timeout Double/parseDouble)
                       :role_id role-id
