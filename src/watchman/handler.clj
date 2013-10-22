@@ -106,6 +106,15 @@
                              form))
                          m))
 
+; TODO(caleb): This could ensure the path will parse properly. See issue #7.
+(defn sanitize-path
+  "Sanitize a user-supplied path. Right now, just adds on a leading / if none exists. A nil path is coerced to
+  an empty path (/)."
+  [path]
+  (if path
+    (if (re-find #"^/" path) path (str "/" path))
+    "/"))
+
 (defn save-role-from-params
   "Saves a role based on the given params. The params include the list of hosts and checks to associate
   with this role."
@@ -126,12 +135,13 @@
       (k/where {:id role-id}))
     (doseq [check checks]
       (let [check-id (-?> check :id Integer/parseInt)
-            check-db-fields
-              (merge (select-keys check [:path :nickname])
-                     {:expected_status_code (-?> check :expected_status_code Integer/parseInt)
-                      :timeout (-?> check :timeout Double/parseDouble)
-                      :role_id role-id
-                      :max_retries (-?> check :max_retries Integer/parseInt)})]
+            path (sanitize-path (:path check))
+            check-db-fields {:path path
+                             :nickname (:nickname check)
+                             :expected_status_code (-?> check :expected_status_code Integer/parseInt)
+                             :timeout (-?> check :timeout Double/parseDouble)
+                             :role_id role-id
+                             :max_retries (-?> check :max_retries Integer/parseInt)}]
         (serialize-to-db-from-params check
                                      #(let [check-id (-> (k/insert models/checks (k/values check-db-fields))
                                                          (sget :id))]
