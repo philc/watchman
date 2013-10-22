@@ -1,6 +1,9 @@
 <div id="index-page">
   <script type="text/javascript">
     $(document).ready(function() {
+      // Reload the page each minute.
+      window.setTimeout(function() { location.reload(); }, 60000);
+
       $("td.down a").click(function(event) {
         event.preventDefault();
         var td = $(event.currentTarget).parents("td");
