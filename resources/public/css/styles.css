@@ -96,11 +96,8 @@ html { height: 100%; }
 body {
   background-color: #f9f9f9;
   font-family: "Helvetica Neue", "Lucida Grande", Helvetica, Arial, Verdana, sans-serif;
-  margin: 0 auto;
-  width: 800px;
-  position: relative;
   min-height: 100%;
-  overflow-x: hidden;
+  display: flex;
 }
 
 header {
@@ -112,41 +109,36 @@ header {
 }
 
 #inner-body {
-  position: relative;
-  padding: 0 40px;
+  width: 800px;
+  box-sizing: border-box;
+  padding: 0 40px 100px 40px;
 }
 
 #watchman-text {
   position: absolute;
-  top: 0;
-  left: -150px;
-  height: 100%;
-  width: 150px;
-  background-color: black;
+  padding: 0 30px;
+  right: 160px;
+  line-height: 160px;
+  font-size: 120px;
+  -webkit-transform-origin: top right;
+  -webkit-transform: rotate(-90deg);
+  -moz-transform-origin: top right;
+  -moz-transform: rotate(-90deg);
   color: #F6CC25; /* Yellow */
+  font-family: Impact, "Helvetica Neue", "Lucida Grande", Helvetica, Arial, sans-serif;
+  font-weight: bold;
   -moz-user-select: none;
   -webkit-user-select: none;
   -ms-user-select: none;
 }
 
-#black-edge {
-  position: absolute;
-  width: 3000px;
-  top: 0;
-  height: 100%;
-  right: 50%;
-  margin-right: 400px;
-  background-color: black;
-}
+aside.side-column { flex: 1; }
 
-#watchman-text div {
-  font-family: Impact, "Helvetica Neue", "Lucida Grande", Helvetica, Arial, sans-serif;
-  font-weight: bold;
+#black-edge {
+  /* Make sure the black edge is always tall enough to contain watchman-text. */
+  min-height: 700px;
   position: relative;
-  right: 20px;
-  top: 455px;
-  -webkit-transform: rotate(-90deg);
-  font-size: 120px;
+  background-color: black;
 }
 
 nav li { display: inline-block; }
@@ -169,11 +161,6 @@ nav a:hover, nav li.selected a:hover { border-bottom: 3px solid black; }
 /*
  * Index page.
  */
-#order-by {
-  position: absolute;
-  left: 40px;
-  top: -10px;
-}
 .check-status .status a { display: block; }
 .check-status .up { background-color: #69D166; }
 .check-status .up a { color: black; }
