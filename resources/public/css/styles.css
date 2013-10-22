@@ -95,14 +95,11 @@ table.display th:last-of-type, table.display td:last-of-type {
 html { height: 100%; }
 body {
   background-color: #f9f9f9;
-  min-height: 100%;
-}
-
-body {
   font-family: "Helvetica Neue", "Lucida Grande", Helvetica, Arial, Verdana, sans-serif;
   margin: 0 auto;
   width: 800px;
   position: relative;
+  min-height: 100%;
   overflow-x: hidden;
 }
 
