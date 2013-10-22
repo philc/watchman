@@ -126,7 +126,7 @@
               is-up (= (:status response) (sget check :expected_status_code))
               previous-status (sget check-status :status)
               new-status (if is-up "up" "down")]
-          (log-info (format "%s %s\n%s" url (:status response) (-> response :body (truncate-string 300))))
+          (log-info (format "%s %s\n%s" url (:status response) (-> response :body (truncate-string 1000))))
           (if (or is-up (not (has-remaining-attempts? check-status)))
             (do
               (k/update models/check-statuses
