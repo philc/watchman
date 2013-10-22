@@ -33,7 +33,7 @@
 (def at-at-pool (at-at/mk-pool))
 
 (def checks-in-progress
-  "A map check-status-id -> {:in-progress, :attempt-number}. This is book keeping for handling retries."
+  "A map check-status-id -> {:in-progress, :attempt-number}. This is bookkeeping for handling retries."
   (atom {}))
 
 (deftemplate alert-email-html "alert_email.html"
