@@ -67,6 +67,7 @@
     - name: rsync project
       local_action: >
         command rsync -az --checksum --itemize-changes --exclude=.git --exclude=.vagrant
+        --include='target/*-standalone.jar' --exclude='target/*'
         .. {{ inventory_hostname }}:/opt/watchman
       register: rsync
       changed_when: rsync.stdout_lines|length > 0
