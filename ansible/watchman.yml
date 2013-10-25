@@ -23,6 +23,10 @@
         - postgresql
         - libpq-dev
 
+    - name: admin group can passwordless sudo as any user
+      lineinfile: "dest=/etc/sudoers state=present regexp='^%admin' line='%admin ALL=(ALL) NOPASSWD:ALL'"
+      sudo: true
+
     - name: create postgres user
       postgresql_user: name="{{ ansible_ssh_user }}" role_attr_flags="SUPERUSER,CREATEROLE,CREATEDB"
                        state=present password="{{ env['watchman_db_pass'] }}"
