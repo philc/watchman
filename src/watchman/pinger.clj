@@ -75,7 +75,7 @@
 
 (defn send-email
   "Send an email describing the current state of a check-status."
-  [check-status]
+  [check-status to-email-address]
   (let [host (sget check-status :hosts)
         check (sget check-status :checks)
         subject (format "[%s] %s %s"
@@ -137,7 +137,7 @@
                                :status new-status})
                 (k/where {:id check-status-id}))
               (when (not= new-status previous-status)
-                (send-email (models/get-check-status-by-id check-status-id)))
+                (send-email (models/get-check-status-by-id check-status-id) to-email-address))
               (swap! checks-in-progress dissoc check-status-id))
             (do
               (k/update models/check-statuses
