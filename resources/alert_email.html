@@ -1,3 +1,7 @@
+<!-- We include invisible divs with unique content around the actual message. This prevents the Gmail UI from
+     considering similar messages the same and auto-collapsing the content of those messages. See here for the
+     necessary CSS styles to achieve this: http://stackoverflow.com/q/4013670/46237 -->
+<div style="max-height:0px; overflow:hidden; display:none !important" class="unique-message-id"></div>
 <a id="check-url"></a> <a id="ssh-link" style="margin-left:10px">ssh</a><br/>
 Status: <span id="status" /><br/>
 <div id="additional-details">
@@ -5,3 +9,4 @@ HTTP status code: <span id="http-status" /><br/>
 Body:<br/>
 <div id="response-body"></div>
 </div>
+<div style="max-height:0px; overflow:hidden; display:none !important" class="unique-message-id"></div>

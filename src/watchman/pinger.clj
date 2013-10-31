@@ -2,6 +2,7 @@
   (:require [clojure.core.incubator :refer [-?>]]
             [clj-time.core :as time-core]
             [clj-time.coerce :as time-coerce]
+            [clj-time.format :as time-format]
             [clj-http.client :as http]
             [clojure.string :as string]
             [korma.incubator.core :as k]
@@ -44,6 +45,9 @@
                                         (sget check-status :host_id)))
   [:#status] (substitute (sget check-status :status))
   [:#http-status] (substitute (str (sget check-status :last_response_status_code)))
+  [:.unique-message-id] (content (->> (time-core/now)
+                                      time-coerce/to-date-time
+                                      (time-format/unparse (:date-time time-format/formatters))))
   [:#additional-details] (if (= (sget check-status :status) "down")
                            identity
                            (substitute nil))
