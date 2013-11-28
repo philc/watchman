@@ -34,8 +34,19 @@
 (def at-at-pool (at-at/mk-pool))
 
 (def checks-in-progress
-  "A map check-status-id -> {:in-progress, :attempt-number}. This is bookkeeping for handling retries."
+  "A map check-status-id -> {:in-progress, :attempt-number}. This is a bookkeeping map, for handling retries."
   (atom {}))
+
+(defn add-role-to-email-address
+  "Adds the name of the role to the email address using this format: username+role@domain.com. This makes
+  filtering emails for a given role easier."
+  [role-name email-address]
+  (let [[username domain] (string/split email-address #"@")
+        ; Make sure the role name is suitable for being embedded in an email address.
+        escaped-role-name (-> role-name
+                              (string/replace #"\s+" "_")
+                              (string/replace #"[^\w]" ""))]
+        (format "%s+%s@%s" username escaped-role-name domain)))
 
 (deftemplate alert-email-html "alert_email.html"
   [check-status]
@@ -58,6 +69,7 @@
                                         str
                                         (truncate-string response-body-size-limit-chars)
                                         (string/replace "\n" "<br/>")))))
+
 (defn alert-email-plaintext
   [check-status]
   (let [status (sget check-status :status)
@@ -79,16 +91,18 @@
 
 (defn send-email
   "Send an email describing the current state of a check-status."
-  [check-status to-email-address]
+  ; We commonly call this function from the REPL, so it's nice to have all needed information as arguments.
+  [check-status from-email-address to-email-address smtp-credentials]
   (let [host (sget check-status :hosts)
         check (sget check-status :checks)
+        role-name (-> (sget check :role_id) (models/get-role-by-id) (sget :name))
         subject (format "[%s] %s %s"
-                        (-> (sget check :role_id) (models/get-role-by-id) (sget :name))
+                        role-name
                         (models/get-host-display-name host)
                         (models/get-check-display-name check))
         html-body (string/join (alert-email-html check-status))
         plaintext-body (alert-email-plaintext check-status)
-        email-message {:from from-email-address
+        email-message {:from (add-role-to-email-address role-name from-email-address)
                        :to to-email-address
                        :subject subject
                        :body [:alternative
@@ -141,7 +155,10 @@
                                :status new-status})
                 (k/where {:id check-status-id}))
               (when (not= new-status previous-status)
-                (send-email (models/get-check-status-by-id check-status-id) to-email-address))
+                (send-email (models/get-check-status-by-id check-status-id)
+                            from-email-address
+                            to-email-address
+                            smtp-credentials))
               (swap! checks-in-progress dissoc check-status-id))
             (do
               (k/update models/check-statuses
