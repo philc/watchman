@@ -52,3 +52,9 @@
   (down []
     (doseq [table-name [:check_statuses :roles_hosts :hosts :checks :roles]]
        (drop (table table-name)))))
+
+(defmigration add_last_response_content_type_to_check_statuses-20131128
+  (up []
+    (alter :add (table :check_statuses (text :last_response_content_type))))
+  (down []
+    (alter :drop (table :check_statuses (column :last_response_content_type)))))
