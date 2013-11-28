@@ -48,8 +48,8 @@
                               (string/replace #"[^\w]" ""))]
         (format "%s+%s@%s" username escaped-role-name domain)))
 
-(deftemplate alert-email-html "alert_email.html"
-  [check-status]
+(deftemplate alert-email-html-template "alert_email.html"
+  [check-status response-body]
   [:#check-url] (do-> (set-attr "href" (models/get-url-of-check-status check-status))
                       (content (models/get-url-of-check-status check-status)))
   [:#ssh-link] (set-attr "href" (format "http://%s/ssh_redirect?host_id=%s" watchman-host
@@ -64,14 +64,22 @@
                            (substitute nil))
   [:#response-body] (if (= (sget check-status :status) "up")
                       (substitute nil)
-                      (html-content (-> check-status
-                                        (sget :last_response_body)
-                                        str
-                                        (truncate-string response-body-size-limit-chars)
-                                        (string/replace "\n" "<br/>")))))
+                      (html-content response-body)))
 
-(defn alert-email-plaintext
-  [check-status]
+(defn- escape-html-chars [s]
+  (-> s (string/replace "<" "&lt;") (string/replace ">" "&gt;")))
+
+(defn alert-email-html [check-status]
+  (let [response-body (-> check-status
+                          (sget :last_response_body)
+                          str
+                          (truncate-string response-body-size-limit-chars))
+        response-body (if (= (sget check-status :last_response_content_type) "text/html")
+                        response-body
+                        (-> response-body escape-html-chars (string/replace "\n" "<br/>")))]
+    (alert-email-html-template check-status response-body)))
+
+(defn alert-email-plaintext [check-status]
   (let [status (sget check-status :status)
         url (models/get-url-of-check-status check-status)
         up-template (string/join "\n" ["%s"
