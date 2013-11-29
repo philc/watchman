@@ -45,7 +45,8 @@
         ; Make sure the role name is suitable for being embedded in an email address.
         escaped-role-name (-> role-name
                               (string/replace #"\s+" "_")
-                              (string/replace #"[^\w]" ""))]
+                              (string/replace #"[^\w]" "")
+                              string/lower-case)]
         (format "%s+%s@%s" username escaped-role-name domain)))
 
 (deftemplate alert-email-html-template "alert_email.html"
