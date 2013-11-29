@@ -13,6 +13,8 @@
                               :user (or (System/getenv "WATCHMAN_DB_USER") (System/getenv "USER"))
                               :password (or (System/getenv "WATCHMAN_DB_PASS") "")}))
 
+(declare check-statuses)
+
 (def underscorize
   "Takes a hyphenated keyword (or string) and returns an underscored keyword.
    Appends the optional suffix string arg if supplied."
@@ -35,7 +37,8 @@
 ; - max_retries: how many times to retry before considering the check a failure.
 ; - expected_status_code
 ; - expected_response_contents
-(defentity2 checks)
+(defentity2 checks
+  (has-many check-statuses {:fk :check_id}))
 
 ; A host to check, which can belong to one or more roles.
 ; - hostname
@@ -145,6 +148,12 @@
 
 (defn create-role [fields]
   (k/insert roles (k/values fields)))
+
+(defn create-check [fields]
+  (k/insert checks (k/values fields)))
+
+(defn create-host [fields]
+  (k/insert hosts (k/values fields)))
 
 (defn update-check-status [id fields]
   {:pre [(number? id)]}
