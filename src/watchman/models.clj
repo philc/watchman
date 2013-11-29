@@ -146,6 +146,12 @@
 (defn create-role [fields]
   (k/insert roles (k/values fields)))
 
+(defn update-check-status [id fields]
+  {:pre [(number? id)]}
+  (k/update check-statuses
+    (k/set-fields fields)
+    (k/where {:id id})))
+
 (defn ready-to-perform?
   "True if enough time has elapsed since we last checked this alert."
   [check-status]

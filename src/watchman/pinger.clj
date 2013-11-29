@@ -127,7 +127,47 @@
       (sget-in check-status [:checks :max_retries])))
 
 (defn perform-check
-  "The HTTP request and response assertions are done in a future."
+  "Makes a synchronous HTTP request and updates the corresponding check-status DB object with the results."
+  [check-status]
+  (let [check-status-id (sget check-status :id)
+        check (sget check-status :checks)
+        host (sget-in check-status [:hosts :hostname])
+        url (models/get-url-of-check-status check-status)
+        response (try (http/get url {:conn-timeout (-> (sget check :timeout) (* 1000) int)
+                                     ; Don't throw exceptions on 500x status codes.
+                                     :throw-exceptions false})
+                      (catch ConnectTimeoutException exception
+                        {:status nil :body (format "Connection to %s timed out after %ss." url
+                                                   (sget check :timeout))})
+                      (catch Exception exception
+                        ; In particular, we can get a ConnectionException if the host exists but is not
+                        ; listening on the port, or if it's an unknown host.
+                        {:status nil :body (format "Error connecting to %s: %s" url exception)}))
+        is-up (= (:status response) (sget check :expected_status_code))
+        previous-status (sget check-status :status)
+        new-status (if is-up "up" "down")]
+    (log-info (format "%s %s\n%s" url (:status response) (-> response :body (truncate-string 1000))))
+    (if (or is-up (not (has-remaining-attempts? check-status)))
+      (do
+        (models/update-check-status check-status-id
+                                    {:last_checked_at (time-coerce/to-timestamp (time-core/now))
+                                     :last_response_status_code (:status response)
+                                     :last_response_body (-> response :body
+                                                             (truncate-string response-body-size-limit-chars))
+                                     :status new-status})
+        (when (not= new-status previous-status)
+          (send-email (models/get-check-status-by-id check-status-id)
+                      from-email-address
+                      to-email-address
+                      smtp-credentials))
+        (swap! checks-in-progress dissoc check-status-id))
+      (do
+        (models/update-check-status check-status-id
+                                    {:last_checked_at (time-coerce/to-timestamp (time-core/now))})
+        (log-info (str "Will retry check-status id " check-status-id))))))
+
+(defn perform-check-in-background
+  "The HTTP request and the response assertions are done inside of a future."
   [check-status]
   (let [check-status-id (sget check-status :id)]
     (swap! checks-in-progress (fn [old-value]
@@ -136,43 +176,7 @@
                                     (update-in [check-status-id :attempt-number] #(inc (or % 0))))))
     (future
       (try
-        (let [check (sget check-status :checks)
-              host (sget-in check-status [:hosts :hostname])
-              url (models/get-url-of-check-status check-status)
-              response (try (http/get url {:conn-timeout (-> (sget check :timeout) (* 1000) int)
-                                           ; Don't throw exceptions on 500x status codes.
-                                           :throw-exceptions false})
-                            (catch ConnectTimeoutException exception
-                              {:status nil :body (format "Connection to %s timed out after %ss." url
-                                                         (sget check :timeout))})
-                            (catch Exception exception
-                              ; In particular, we can get a ConnectionException if the host exists but is not
-                              ; listening on the port, or if it's an unknown host.
-                              {:status nil :body (format "Error connecting to %s: %s" url exception)}))
-              is-up (= (:status response) (sget check :expected_status_code))
-              previous-status (sget check-status :status)
-              new-status (if is-up "up" "down")]
-          (log-info (format "%s %s\n%s" url (:status response) (-> response :body (truncate-string 1000))))
-          (if (or is-up (not (has-remaining-attempts? check-status)))
-            (do
-              (k/update models/check-statuses
-                (k/set-fields {:last_checked_at (time-coerce/to-timestamp (time-core/now))
-                               :last_response_status_code (:status response)
-                               :last_response_body (-> response :body
-                                                       (truncate-string response-body-size-limit-chars))
-                               :status new-status})
-                (k/where {:id check-status-id}))
-              (when (not= new-status previous-status)
-                (send-email (models/get-check-status-by-id check-status-id)
-                            from-email-address
-                            to-email-address
-                            smtp-credentials))
-              (swap! checks-in-progress dissoc check-status-id))
-            (do
-              (k/update models/check-statuses
-                (k/set-fields {:last_checked_at (time-coerce/to-timestamp (time-core/now))})
-                (k/where {:id check-status-id}))
-              (log-info (str "Will retry check-status id " check-status-id)))))
+        (perform-check check-status)
         (catch Exception exception
           (log-exception (str "Failed to perform check. check-status id: " check-status-id) exception))
         (finally
@@ -188,7 +192,7 @@
     (doseq [check-status check-statuses]
       (when (and (not (get-in @checks-in-progress [(sget check-status :id) :in-progress]))
                  (models/ready-to-perform? check-status))
-        (perform-check check-status)))))
+        (perform-check-in-background check-status)))))
 
 (defn start-periodic-polling []
   ; NOTE(philc): For some reason, at-at's jobs do not run from within nREPL.
