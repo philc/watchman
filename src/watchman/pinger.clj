@@ -126,11 +126,11 @@
   (<= (sget-in @checks-in-progress [(sget check-status :id) :attempt-number])
       (sget-in check-status [:checks :max_retries])))
 
-(defn- perform-http-request
+(defn- perform-http-request-for-check
   "Requests the URL of the given check, catches all exceptions, and returns a map containing {:status, :body}"
   [check-status]
   (let [url (models/get-url-of-check-status check-status)
-        timeout (sget-in check-status :checks :timeout)]
+        timeout (sget-in check-status [:checks :timeout])]
     (try
       (http/get url {:conn-timeout (-> timeout (* 1000) int)
                      ; Don't throw exceptions on 500 status codes.
@@ -142,27 +142,35 @@
         ; an unknown host.
         {:status nil :body (format "Error connecting to %s: %s" url exception)}))))
 
-(defn- perform-check
+(defn- strip-charset-from-content-type
+  "Removes the charset from a content type HTTP header, e.g. 'text/html;charset=UTF-8' => 'text/html'"
+  [content-type-header]
+  (-> content-type-header (string/split #";") first))
+
+(defn perform-check
   "Makes a synchronous HTTP request and updates the corresponding check-status DB object with the results."
-  [check-status]
+  [check-status has-remaining-attempts]
   (let [check-status-id (sget check-status :id)
         check (sget check-status :checks)
         host (sget-in check-status [:hosts :hostname])
-        response (perform-http-request check-status)
+        response (perform-http-request-for-check check-status)
         is-up (= (:status response) (sget check :expected_status_code))
         previous-status (sget check-status :status)
         new-status (if is-up "up" "down")
         last-checked-at-timestamp (time-coerce/to-timestamp (time-core/now))]
     (log-info (format "%s %s\n%s" (models/get-url-of-check-status check-status) (:status response)
                       (-> response :body (truncate-string 1000))))
-    (if (or is-up (not (has-remaining-attempts? check-status)))
+    (if (or is-up (not has-remaining-attempts))
       (do
-        (models/update-check-status check-status-id
-                                    {:last_checked_at last-checked-at-timestamp
-                                     :last_response_status_code (:status response)
-                                     :last_response_body (-> response :body
-                                                             (truncate-string response-body-size-limit-chars))
-                                     :status new-status})
+        (models/update-check-status
+         check-status-id
+         {:last_checked_at last-checked-at-timestamp
+          :last_response_status_code (:status response)
+          :last_response_content_type (-?> (get-in response [:headers "content-type"])
+                                           strip-charset-from-content-type)
+          :last_response_body (-> response :body
+                                  (truncate-string response-body-size-limit-chars))
+          :status new-status})
         (when (not= new-status previous-status)
           (send-email (models/get-check-status-by-id check-status-id)
                       from-email-address
@@ -183,7 +191,7 @@
                                     (update-in [check-status-id :attempt-number] #(inc (or % 0))))))
     (future
       (try
-        (perform-check check-status)
+        (perform-check check-status (has-remaining-attempts? check-status))
         (catch Exception exception
           (log-exception (str "Failed to perform check. check-status id: " check-status-id) exception))
         (finally
