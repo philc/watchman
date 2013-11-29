@@ -126,31 +126,39 @@
   (<= (sget-in @checks-in-progress [(sget check-status :id) :attempt-number])
       (sget-in check-status [:checks :max_retries])))
 
-(defn perform-check
+(defn- perform-http-request
+  "Requests the URL of the given check, catches all exceptions, and returns a map containing {:status, :body}"
+  [check-status]
+  (let [url (models/get-url-of-check-status check-status)
+        timeout (sget-in check-status :checks :timeout)]
+    (try
+      (http/get url {:conn-timeout (-> timeout (* 1000) int)
+                     ; Don't throw exceptions on 500 status codes.
+                     :throw-exceptions false})
+      (catch ConnectTimeoutException exception
+        {:status nil :body (format "Connection to %s timed out after %ss." url timeout)})
+      (catch Exception exception
+        ; We can get a ConnectionException if the host exists but is not listening on the port, or if it's
+        ; an unknown host.
+        {:status nil :body (format "Error connecting to %s: %s" url exception)}))))
+
+(defn- perform-check
   "Makes a synchronous HTTP request and updates the corresponding check-status DB object with the results."
   [check-status]
   (let [check-status-id (sget check-status :id)
         check (sget check-status :checks)
         host (sget-in check-status [:hosts :hostname])
-        url (models/get-url-of-check-status check-status)
-        response (try (http/get url {:conn-timeout (-> (sget check :timeout) (* 1000) int)
-                                     ; Don't throw exceptions on 500x status codes.
-                                     :throw-exceptions false})
-                      (catch ConnectTimeoutException exception
-                        {:status nil :body (format "Connection to %s timed out after %ss." url
-                                                   (sget check :timeout))})
-                      (catch Exception exception
-                        ; In particular, we can get a ConnectionException if the host exists but is not
-                        ; listening on the port, or if it's an unknown host.
-                        {:status nil :body (format "Error connecting to %s: %s" url exception)}))
+        response (perform-http-request check-status)
         is-up (= (:status response) (sget check :expected_status_code))
         previous-status (sget check-status :status)
-        new-status (if is-up "up" "down")]
-    (log-info (format "%s %s\n%s" url (:status response) (-> response :body (truncate-string 1000))))
+        new-status (if is-up "up" "down")
+        last-checked-at-timestamp (time-coerce/to-timestamp (time-core/now))]
+    (log-info (format "%s %s\n%s" (models/get-url-of-check-status check-status) (:status response)
+                      (-> response :body (truncate-string 1000))))
     (if (or is-up (not (has-remaining-attempts? check-status)))
       (do
         (models/update-check-status check-status-id
-                                    {:last_checked_at (time-coerce/to-timestamp (time-core/now))
+                                    {:last_checked_at last-checked-at-timestamp
                                      :last_response_status_code (:status response)
                                      :last_response_body (-> response :body
                                                              (truncate-string response-body-size-limit-chars))
@@ -162,8 +170,7 @@
                       smtp-credentials))
         (swap! checks-in-progress dissoc check-status-id))
       (do
-        (models/update-check-status check-status-id
-                                    {:last_checked_at (time-coerce/to-timestamp (time-core/now))})
+        (models/update-check-status check-status-id {:last_checked_at last-checked-at-timestamp})
         (log-info (str "Will retry check-status id " check-status-id))))))
 
 (defn perform-check-in-background
