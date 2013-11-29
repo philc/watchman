@@ -105,10 +105,7 @@
   (let [host (sget check-status :hosts)
         check (sget check-status :checks)
         role-name (-> (sget check :role_id) (models/get-role-by-id) (sget :name))
-        subject (format "[%s] %s %s"
-                        role-name
-                        (models/get-host-display-name host)
-                        (models/get-check-display-name check))
+        subject (format "%s %s" (models/get-host-display-name host) (models/get-check-display-name check))
         html-body (string/join (alert-email-html check-status))
         plaintext-body (alert-email-plaintext check-status)
         email-message {:from (add-role-to-email-address role-name from-email-address)
