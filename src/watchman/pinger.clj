@@ -37,7 +37,7 @@
   "A map check-status-id -> {:in-progress, :attempt-number}. This is a bookkeeping map, for handling retries."
   (atom {}))
 
-(defn add-role-to-email-address
+(defn- add-role-to-email-address
   "Adds the name of the role to the email address using this format: username+role@domain.com. This makes
   filtering emails for a given role easier."
   [role-name email-address]
@@ -69,7 +69,7 @@
 (defn- escape-html-chars [s]
   (-> s (string/replace "<" "&lt;") (string/replace ">" "&gt;")))
 
-(defn alert-email-html [check-status]
+(defn- alert-email-html [check-status]
   (let [response-body (-> check-status
                           (sget :last_response_body)
                           str
@@ -79,7 +79,7 @@
                         (-> response-body escape-html-chars (string/replace "\n" "<br/>")))]
     (alert-email-html-template check-status response-body)))
 
-(defn alert-email-plaintext [check-status]
+(defn- alert-email-plaintext [check-status]
   (let [status (sget check-status :status)
         url (models/get-url-of-check-status check-status)
         up-template (string/join "\n" ["%s"
@@ -173,7 +173,7 @@
         (models/update-check-status check-status-id {:last_checked_at last-checked-at-timestamp})
         (log-info (str "Will retry check-status id " check-status-id))))))
 
-(defn perform-check-in-background
+(defn- perform-check-in-background
   "The HTTP request and the response assertions are done inside of a future."
   [check-status]
   (let [check-status-id (sget check-status :id)]
@@ -189,7 +189,7 @@
         (finally
           (swap! checks-in-progress assoc-in [check-status-id :in-progress] false))))))
 
-(defn perform-eligible-checks
+(defn- perform-eligible-checks
   "Performs all checks which are scheduled to run."
   []
   (let [check-statuses (k/select models/check-statuses
@@ -210,5 +210,5 @@
                     (log-exception exception)))
                at-at-pool))
 
-(defn stop-periodic-polling []
+(defn- stop-periodic-polling []
   (at-at/stop-and-reset-pool! at-at-pool))

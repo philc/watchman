@@ -1,7 +1,9 @@
 (ns watchman.test.pinger-test
   (require [midje.sweet :refer :all]
            [watchman.pinger :refer :all]
-           [midje.util :only [testable-privates]]))
+           [midje.util :refer [testable-privates]]))
+
+(testable-privates watchman.pinger alert-email-html)
 
 (def check-status {:host_id 1
                    :hosts {:hostname "the-hostname.com"}
