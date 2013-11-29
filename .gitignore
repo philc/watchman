@@ -9,4 +9,5 @@ log/*.log
 .lein-repl-history
 target/
 .vagrant
+.nrepl-port
 ansible/vars/env.yml
