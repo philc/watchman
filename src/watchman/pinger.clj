@@ -68,7 +68,7 @@
                       (html-content response-body)))
 
 (defn- escape-html-chars [s]
-  (-> s (string/replace "<" "&lt;") (string/replace ">" "&gt;")))
+  (-> s (string/replace "&" "&amp;") (string/replace "<" "&lt;") (string/replace ">" "&gt;")))
 
 (defn- alert-email-html [check-status]
   (let [response-body (-> check-status
