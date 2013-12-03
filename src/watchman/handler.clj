@@ -173,7 +173,12 @@
   (GET "/" {:keys [params]}
     (let [sort-key-fn (if (= (:order params) "hosts")
                         #(vector (sget-in % [:hosts :hostname]) (sget-in % [:checks :path]))
-                        #(vector (sget % :status) (sget-in % [:hosts :hostname]) (sget-in % [:checks :path])))
+                        ; The desired sort order is down > paused > up. This sort fn logic leverages the fact
+                        ; that the state and status names sort lexically in that order.
+                        #(vector (if (= (sget % :state) "enabled")
+                                   (sget % :status)
+                                   (sget % :state))
+                                 (sget-in % [:hosts :hostname]) (sget-in % [:checks :path])))
           check-statuses (->> (k/select models/check-statuses
                                 (k/with-object models/hosts)
                                 (k/with-object models/checks))
