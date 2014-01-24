@@ -1,7 +1,8 @@
 (ns watchman.utils
   (:require [clj-time.core :as time-core]
             [clj-time.format :as time-format]
-            [clojure.java.io :refer [reader writer]]))
+            [clojure.java.io :refer [reader writer]])
+  (:import [java.net URL MalformedURLException]))
 
 ; dev-logging controls whether we log basic request info and exceptions to stdout, for dev workflows.
 (def ^:private dev-logging (and (not= (System/getenv "RING_ENV") "production")))
@@ -95,3 +96,12 @@
   (let [line (format "%s %s" (timestamp-now-millis) message)]
     (when dev-logging (println line))
     (log-to-dated-file "log/info" line)))
+
+(defn validate-hostname
+  "Verifies that a hostname is valid as defined by RFC 2396."
+  [hostname]
+  (try
+    (let [url (URL. (str "http://" hostname))]
+      (= (.getHost url) hostname))
+    (catch MalformedURLException e
+      false)))

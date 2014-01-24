@@ -32,6 +32,7 @@
                  [overtone/at-at "1.2.0"] ; For scheduling recurring tasks.
                  [clj-time "0.4.4"]
                  [slingshot "0.10.3"]
+                 [mississippi "1.0.1"] ; Model validation
                  [ring-mock "0.1.3"]]
   :plugins [[lein-ring "0.8.2"]
             [lein-lobos "1.0.0-beta1"]]

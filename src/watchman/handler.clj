@@ -156,9 +156,7 @@
             host-db-fields (select-keys host [:hostname])]
         (serialize-to-db-from-params host
                                      #(let [host-record-id
-                                           (-> (or (first (k/select models/hosts
-                                                            (k/where {:hostname (:hostname host)})))
-                                                   (k/insert models/hosts (k/values host-db-fields)))
+                                           (-> (models/find-or-create-host (:hostname host))
                                                (sget :id))]
                                        (models/add-host-to-role host-record-id role-id))
                                      #(k/update models/hosts

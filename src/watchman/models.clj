@@ -122,6 +122,14 @@
 (defn get-host-by-id [id]
   (first (k/select hosts (k/where {:id id}))))
 
+(defn get-host-by-hostname-in-role
+  "Returns a host record by hostname iff it is assigned to the specified role."
+  [hostname role-id]
+  (first (k/select hosts
+                   (k/join roles-hosts (= :roles_hosts.host_id :id))
+                   (k/where {:hostname hostname
+                             :roles_hosts.role_id role-id}))))
+
 (defn get-check-display-name [check-status]
   (or (sget check-status :nickname)
       (sget check-status :path)))
@@ -154,6 +162,11 @@
 
 (defn create-host [fields]
   (k/insert hosts (k/values fields)))
+
+(defn find-or-create-host [hostname]
+  (or (first (k/select hosts
+                       (k/where {:hostname hostname})))
+      (k/insert hosts (k/values {:hostname hostname}))))
 
 (defn update-check-status [id fields]
   {:pre [(number? id)]}
