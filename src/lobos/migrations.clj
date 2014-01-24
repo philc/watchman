@@ -58,3 +58,9 @@
     (alter :add (table :check_statuses (text :last_response_content_type))))
   (down []
     (alter :drop (table :check_statuses (column :last_response_content_type)))))
+
+(defmigration add-unique-hostname-index-20130124
+  (up []
+    (create (index :hosts :hosts_unique_hostname [:hostname] :unique)))
+  (down []
+    (drop (index :hosts :hosts_unique_hostname))))
