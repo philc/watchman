@@ -21,7 +21,7 @@
         event.preventDefault();
         var parentRow = $(event.target).parents("tr");
         var newState = parentRow.attr("data-state") == "enabled" ? "paused" : "enabled";
-        $.ajax("/api/check_statuses/" + parentRow.data().checkStatusId, {
+        $.ajax("/api/v1/check_statuses/" + parentRow.data().checkStatusId, {
           data: newState,
           contentType: "text/plain",
           type: "PUT"

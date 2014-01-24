@@ -7,6 +7,7 @@
         [ring.middleware.multipart-params :only [wrap-multipart-params]]
         [ring.adapter.jetty :only [run-jetty]])
   (:require [compojure.handler :as handler]
+            [watchman.api-v1-handler :as api-handler]
             [cemerick.friend :as friend]
             (cemerick.friend [workflows :as friend-workflows]
                              [credentials :as friend-creds])
@@ -170,6 +171,8 @@
                                           (k/delete models/hosts (k/where {:id host-id})))))))))
 
 (defroutes app-routes
+  (context "/api/v1" [] api-handler/api-routes)
+
   (GET "/" {:keys [params]}
     (let [sort-key-fn (if (= (:order params) "hosts")
                         #(vector (sget-in % [:hosts :hostname]) (sget-in % [:checks :path]))
@@ -224,17 +227,6 @@
         (do (save-role-from-params params)
             (layout (roles-edit-page (models/get-role-by-id role-id) "Changes accepted.") (nav :roles-edit)))
         {:status 404})))
-
-  (PUT "/api/check_statuses/:id" {:keys [params body]}
-    (let [body (slurp body)
-          check-status-id (-> params :id Integer/parseInt)]
-      (if (#{"paused" "enabled"} body)
-        (do
-          (k/update models/check-statuses
-            (k/set-fields {:state body})
-            (k/where {:id check-status-id}))
-          {:status 200})
-        {:status 400 :body "Invalid state."})))
 
   (route/resources "/")
   (route/not-found "Not Found"))
