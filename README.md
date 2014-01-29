@@ -31,3 +31,31 @@ To deploy Watchman locally to a Vagrant VM:
         ansible-playbook ansible/watchman.yml -i ansible/hosts -e 'hosts=vagrant'
 
 - Visit http://localhost:8010. The vagrant VM's port 80 is forwarded over 8010.
+
+## REST API
+
+Watchman has a RESTful HTTP API for programatically managing data.
+
+All API routes require HTTP Basic authentication:
+
+    curl --user username:password -X DELETE http://watchman-hostname.com/api/v1/roles/1/hosts/example.com
+
+### Routes
+
+Adding a host to a role:
+
+Params:
+  `hostname`: Required. The hostname to add to the role.
+
+    POST /api/v1/roles/{id}/hosts
+
+Example response:
+
+    {
+      "id" : 11,
+      "hostname" : "example.com"
+    }
+
+Remove a host from a role:
+
+    DELETE /api/v1/roles/{id}/hosts/{hostname}
