@@ -8,19 +8,19 @@
             [watchman.utils :refer [validate-hostname]]
             [watchman.models :as models]))
 
-(defn- generate-json-error-response
+(defn- create-json-error-response
   "Returns a JSON response body of the form: {'reason': 'message'}"
   [error-code message]
   {:status error-code
    :headers {"Content-Type" "application/json"}
    :body (json/generate-string {:reason message})})
 
-(defn- generate-json-validation-error-response
+(defn- create-json-validation-error-response
   "Generates JSON error response for the return value of validate-params"
   [[error-field error-message]]
-  (generate-json-error-response 400 (str (name error-field) " " error-message)))
+  (create-json-error-response 400 (str (name error-field) " " error-message)))
 
-(defn- generate-json-response
+(defn- create-json-response
   "Optional keyword args:
   - :raw: If true, assume response-data is already serialized and do not re-serialize it"
   [response-data & {:keys [raw]}]
@@ -46,22 +46,22 @@
   (fn [{:keys [params] :as request}]
     (if-let [role (models/get-role-by-id (Integer/parseInt (:id params)))]
       (handler (assoc request :role role))
-      (generate-json-error-response 404 "role does not exist"))))
+      (create-json-error-response 404 "role does not exist"))))
 
 (defroutes role-api-routes
   (POST "/hosts" {:keys [params role]}
     (if-let [validation-error (validate-params params host-validation-map)]
-      (generate-json-validation-error-response validation-error)
+      (create-json-validation-error-response validation-error)
       (let [host (models/find-or-create-host (:hostname params))]
         (models/add-host-to-role (:id host) (:id role))
-        (generate-json-response host))))
+        (create-json-response host))))
 
   (DELETE "/hosts/:hostname" {:keys [params role]}
     (if-let [host (models/get-host-by-hostname-in-role (:hostname params) (:id role))]
       (do
         (models/remove-host-from-role (:id host) (:id role))
         {:status 204}) ; No content
-      (generate-json-error-response 404 "hostname not found in role"))))
+      (create-json-error-response 404 "hostname not found in role"))))
 
 (defroutes api-routes
   (context "/roles/:id" []
