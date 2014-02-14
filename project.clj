@@ -16,7 +16,7 @@
                  ; Ring depends on clj-stacktrace, but 0.2.5 includes a critical bugfix.
                  ; https://github.com/mmcgrana/clj-stacktrace/issues/14
                  [clj-stacktrace "0.2.5"]
-                 [watchtower "0.1.1"]
+                 [watchtower "0.1.1"] ; For reloading modified HTML templates during development.
                  ; Korma requires a recent jdbc, but lein nondeterministically pulls in an old version.
                  [org.clojure/java.jdbc "0.2.2"]
                  [org.clojars.harob/korma.incubator "0.1.1-SNAPSHOT"] ; Korma, our SQL ORM.
