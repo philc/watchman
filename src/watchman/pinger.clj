@@ -156,8 +156,8 @@
         previous-status (sget check-status :status)
         new-status (if is-up "up" "down")
         last-checked-at-timestamp (time-coerce/to-timestamp (time-core/now))]
-    (log-info (format "%s %s\n%s" (models/get-url-of-check-status check-status) (:status response)
-                      (-> response :body (truncate-string 1000))))
+    (log-info (format "Check result: %s %s\n%s" (models/get-url-of-check-status check-status) (:status response)
+                      (-> response :body string/trim (truncate-string 1000))))
     (if (or is-up (not has-remaining-attempts))
       (do
         (models/update-check-status
