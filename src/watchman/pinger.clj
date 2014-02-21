@@ -118,7 +118,10 @@
                       (sget host :hostname) (sget check-status :status)))
     (if log-emails-without-sending
       (prn email-message)
-      (postal/send-message smtp-credentials email-message))))
+      (let [result (postal/send-message smtp-credentials email-message)]
+        (when (not= (:status result) :SUCCESS)
+          (log-info "Email for check-status %s failed to send:%s\nFull body\n:%s" (:id check)
+                    result email-message))))))
 
 (defn- has-remaining-attempts? [check-status]
   (<= (sget-in @checks-in-progress [(sget check-status :id) :attempt-number])
