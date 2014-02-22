@@ -2,7 +2,8 @@
   (:require [clj-time.core :as time-core]
             [clj-time.format :as time-format]
             [clojure.java.io :refer [reader writer]])
-  (:import [java.net URL MalformedURLException]))
+  (:import [java.net URL MalformedURLException]
+           [java.io BufferedWriter PrintWriter StringWriter]))
 
 ; dev-logging controls whether we log basic request info and exceptions to stdout, for dev workflows.
 (def ^:private dev-logging (and (not= (System/getenv "RING_ENV") "production")))
@@ -83,10 +84,15 @@
         (.write file (str line "\n")))
       nil))
 
+(defn- printable-exception [exception]
+  (let [string-writer (StringWriter.)]
+      (.printStackTrace exception (PrintWriter. string-writer))
+      (str string-writer)))
+
 (defn log-exception
   "Log the given exception to the exceptions log file in an unbuffered manner. Returns nil."
   [preface exception]
-  (let [line (format "%s %s:\n%s" (timestamp-now-millis) preface (str exception))]
+  (let [line (format "%s %s:\n%s" (timestamp-now-millis) preface (printable-exception exception))]
     (when dev-logging (println line))
     (log-to-dated-file "log/exceptions" line)))
 

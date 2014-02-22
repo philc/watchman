@@ -119,6 +119,7 @@
     (if log-emails-without-sending
       (prn email-message)
       (let [result (postal/send-message smtp-credentials email-message)]
+        (log-info (str "Email contents: " email-message))
         (when (not= (:status result) :SUCCESS)
           (log-info "Email for check-status %s failed to send:%s\nFull body\n:%s" (:id check)
                     result email-message))))))
