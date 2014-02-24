@@ -120,7 +120,7 @@
       (prn email-message)
       (let [result (postal/send-message smtp-credentials email-message)]
         (log-info (str "Email contents: " email-message))
-        (when (not= (:status result) :SUCCESS)
+        (when (not= (:error result) :SUCCESS)
           (log-info (format "Email for check-status %s failed to send:%s\nFull body\n:%s" (:id check)
                             result email-message)))))))
 
@@ -160,9 +160,11 @@
         previous-status (sget check-status :status)
         new-status (if is-up "up" "down")
         last-checked-at-timestamp (time-coerce/to-timestamp (time-core/now))]
-    (log-info (format "Check result: %s %s" (models/get-url-of-check-status check-status) (:status response)))
+    (log-info (format "Result for check-status %s: %s %s" check-status-id
+                      (models/get-url-of-check-status check-status) (:status response)))
     (when-not is-up
-      (log-info (-> response :body string/trim (truncate-string 1000))))
+      (log-info (format "check-status %s body: %s" check-status-id
+                        (-> response :body string/trim (truncate-string 1000)))))
     (if (or is-up (not has-remaining-attempts))
       (do
         (models/update-check-status
