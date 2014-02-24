@@ -104,6 +104,7 @@
   [check-status from-email-address to-email-address smtp-credentials]
   (let [host (sget check-status :hosts)
         check (sget check-status :checks)
+        check-status-id (sget check-status :id)
         role-name (-> (sget check :role_id) (models/get-role-by-id) (sget :name))
         subject (format "%s %s" (models/get-host-display-name host) (models/get-check-display-name check))
         html-body (string/join (alert-email-html check-status))
@@ -114,14 +115,14 @@
                        :body [:alternative
                               {:type "text/plain; charset=utf-8" :content plaintext-body}
                               {:type "text/html; charset=utf-8" :content html-body}]}]
-    (log-info (format "Emailing for check-status %s: %s %s" (sget check-status :id)
+    (log-info (format "Emailing for check-status %s: %s %s" check-status-id
                       (sget host :hostname) (sget check-status :status)))
     (if log-emails-without-sending
       (prn email-message)
       (let [result (postal/send-message smtp-credentials email-message)]
-        (log-info (format "Email body check-status %s: %s" (:id check) email-message))
+        (log-info (format "Email body check-status %s: %s" check-status-id email-message))
         (when (not= (:error result) :SUCCESS)
-          (log-info (format "Email for check-status %s failed to send:%s\nFull body\n:%s" (:id check)
+          (log-info (format "Email for check-status %s failed to send:%s\nFull body\n:%s" check-status-id
                             result email-message)))))))
 
 (defn- has-remaining-attempts? [check-status]
