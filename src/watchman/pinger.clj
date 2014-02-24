@@ -112,7 +112,7 @@
                        :to to-email-address
                        :subject subject
                        :body [:alternative
-                              {:type "text/html; charset=utf-8" :content plaintext-body}
+                              {:type "text/plain; charset=utf-8" :content plaintext-body}
                               {:type "text/html; charset=utf-8" :content html-body}]}]
     (log-info (format "Emailing for check-status %s: %s %s" (sget check-status :id)
                       (sget host :hostname) (sget check-status :status)))
