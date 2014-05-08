@@ -16,7 +16,7 @@
         - htop
         - runit
         - tmux
-        - openjdk-6-jre-headless
+        - openjdk-7-jre-headless
         - nginx
         - python-dev
         - python-psycopg2
