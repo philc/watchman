@@ -1,5 +1,0 @@
-#!/bin/sh
-
-cd /opt/watchman
-. ./environment.sh
-exec chpst -u $WATCHMAN_RUN_USER java -Xmx1g -Xms1g -server -jar target/watchman-0.1.0-SNAPSHOT-standalone.jar 2>&1
