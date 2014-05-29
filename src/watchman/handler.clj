@@ -80,7 +80,9 @@
                 [:input.timeout] (do-> (set-attr :value (:timeout check))
                                        (set-attr :name (format "checks[%s][timeout]" i)))
                 [:input.max-retries] (do-> (set-attr :value (sget check :max_retries))
-                                           (set-attr :name (format "checks[%s][max_retries]" i))))
+                                           (set-attr :name (format "checks[%s][max_retries]" i)))
+                [:input.send-email] (do-> (set-attr :name (format "checks[%s][send_email]" i))
+                                          (if (sget check :send_email) (set-attr :checked "true") identity)))
   [:tr.host] (clone-for [[i host] (->> role :hosts (sort-by :hostname) indexed)]
                [:input.id] (do-> (set-attr :value (sget host :id))
                                  (set-attr :name (format "hosts[%s][id]" i)))
@@ -142,7 +144,8 @@
                              :expected_status_code (-?> check :expected_status_code Integer/parseInt)
                              :timeout (-?> check :timeout Double/parseDouble)
                              :role_id role-id
-                             :max_retries (-?> check :max_retries Integer/parseInt)}]
+                             :max_retries (-?> check :max_retries Integer/parseInt)
+                             :send_email (boolean (:send_email check))}]
         (serialize-to-db-from-params check
                                      #(let [check-id (-> (k/insert models/checks (k/values check-db-fields))
                                                          (sget :id))]

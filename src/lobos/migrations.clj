@@ -64,3 +64,9 @@
     (create (index :hosts :hosts_unique_hostname [:hostname] :unique)))
   (down []
     (drop (index :hosts :hosts_unique_hostname))))
+
+(defmigration add-send-email-column-to-check-20140529
+  (up []
+    (alter :add (table :checks (boolean :send_email :not-null (default true)))))
+  (down []
+    (alter :drop (table :checks (column :send_email)))))

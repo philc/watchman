@@ -58,6 +58,7 @@
         <th>HTTP status code</th>
         <th>Timeout</th>
         <th>Max retries</th>
+        <th>Send email?</th>
         <th></th>
       </tr>
 
@@ -66,16 +67,19 @@
            set to true in the HTML, so these fields are not persisted during submission. -->
       <tr class="row-template" style="display:none">
         <td>
-          <input type="hidden" class="id" name="checks[0][id]"/>
-          <input type="hidden" class="deleted" name="checks[0][deleted]" value="true"/>
-          <input type="text" class="path" name="checks[0][path]"/>
+          <input type="hidden" class="id" name="checks[none][id]"/>
+          <input type="hidden" class="deleted" name="checks[none][deleted]" value="true"/>
+          <input type="text" class="path" name="checks[none][path]"/>
         </td>
-        <td><input type="text" class="nickname" name="checks[0][nickname]"/></td>
+        <td><input type="text" class="nickname" name="checks[none][nickname]"/></td>
         <td>
-          <input type="text" class="expected-status-code" name="checks[0][expected_status_code]" value="200"/>
+          <input type="text" class="expected-status-code" name="checks[none][expected_status_code]" value="200"/>
         </td>
-        <td><input type="text" class="timeout" name="checks[0][timeout]" value="3"/></td>
-        <td><input type="text" class="max-retries" name="checks[0][max_retries]" value="0"/></td>
+        <td><input type="text" class="timeout" name="checks[none][timeout]" value="3"/></td>
+        <td><input type="text" class="max-retries" name="checks[none][max_retries]" value="0"/></td>
+        <td class="check-send-email">
+          <input type="checkbox" class="send-email" name="checks[none][send_email]" value="true" checked="true"/>
+        </td>
         <td><a href="#" class="remove"><i class="icon-remove"></i></a></td>
       </tr>
 
@@ -89,10 +93,13 @@
         <td><input type="text" class="expected-status-code" name="checks[0][expected_status_code]"/></td>
         <td><input type="text" class="timeout" name="checks[0][timeout]"/></td>
         <td><input type="text" class="max-retries" name="checks[0][max_retries]"/></td>
+        <td class="check-send-email">
+          <input type="checkbox" class="send-email" name="checks[0][send_email]" value="true"/>
+        </td>
         <td><a href="#" class="remove"><i class="icon-remove"></i></a></td>
       </tr>
       <tr>
-        <td colspan=5></td>
+        <td colspan=6></td>
         <td><a href="#" class="add"><i class="icon-plus"></i></a></td>
       </tr>
     </table>

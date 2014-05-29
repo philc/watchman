@@ -177,7 +177,7 @@
           :last_response_body (-> response :body
                                   (truncate-string response-body-size-limit-chars))
           :status new-status})
-        (when (not= new-status previous-status)
+        (when (and (not= new-status previous-status) (sget check :send_email))
           (send-email (models/get-check-status-by-id check-status-id)
                       from-email-address
                       to-email-address

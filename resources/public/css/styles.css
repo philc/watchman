@@ -240,3 +240,5 @@ table#check-statuses tr.failure-message pre {
 #roles-edit-page input.expected-status-code, #roles-edit-page input.timeout,
 
 #roles-edit-page input.max-retries { width: 40px; }
+
+#roles-edit-page td.check-send-email { text-align:center; vertical-align:middle; }
