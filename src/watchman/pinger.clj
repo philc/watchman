@@ -20,7 +20,8 @@
                        :host (or (get-env-var "WATCHMAN_SMTP_HOST")
                                  ; Default to Amazon's Simple Email Service.
                                  "email-smtp.us-east-1.amazonaws.com")
-                       :port 587})
+                       :port 587
+                       :tls true})
 
 (def from-email-address (get-env-var "WATCHMAN_FROM_EMAIL_ADDRESS"))
 (def to-email-address (get-env-var "WATCHMAN_TO_EMAIL_ADDRESS"))
