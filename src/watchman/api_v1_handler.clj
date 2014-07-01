@@ -5,7 +5,7 @@
             [korma.db :refer [transaction]]
             [cheshire.core :as json]
             [mississippi.core :as m]
-            [watchman.utils :refer [validate-hostname]]
+            [watchman.utils :refer [validate-hostname log-info]]
             [watchman.models :as models]))
 
 (defn- create-json-error-response
@@ -51,7 +51,12 @@
 (defroutes role-api-routes
   (POST "/hosts" {:keys [params role]}
     (if-let [validation-error (validate-params params host-validation-map)]
-      (create-json-validation-error-response validation-error)
+      (do
+        (log-info (str "Invalid API POST to /hosts:\n"
+                       "  Params: " params "\n"
+                       "  Role: " role "\n"
+                       "  Error: " validation-error))
+        (create-json-validation-error-response validation-error))
       (let [host (models/find-or-create-host (:hostname params))]
         (models/add-host-to-role (:id host) (:id role))
         (create-json-response host))))
