@@ -107,6 +107,23 @@
      (k/delete check-statuses (k/where {:host_id host-id :check_id [in check-ids]}))
      (k/delete roles-hosts (k/where {:host_id host-id :role_id role-id})))))
 
+(defn get-check-statuses-with-hosts-and-checks
+  "Returns a sequence of all check-status records in the database with their associated :hosts and :checks
+  relations eagerly loaded."
+  []
+  ; Korma.incubator's 'with-object' unfortunately does not eagerly load associations.
+  ; See: https://github.com/korma/korma.incubator/issues/7
+  (letfn [(in-memory-join [model foreign-key relation check-statuses]
+            (let [ids (->> check-statuses (map #(sget % foreign-key)) set)
+                  id->object (->> (k/select model (k/where {:id [in ids]}))
+                                  (reduce (fn [m obj] (assoc m (sget obj :id) obj)) {}))]
+              (map (fn [check-status]
+                     (assoc check-status relation (sget id->object (sget check-status foreign-key))))
+                   check-statuses)))]
+    (->> (k/select check-statuses)
+         (in-memory-join hosts :host_id :hosts)
+         (in-memory-join checks :check_id :checks))))
+
 (defn get-check-status-by-id [id]
   (first (k/select check-statuses
            (k/where {:id id})

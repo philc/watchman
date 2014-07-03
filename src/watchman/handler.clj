@@ -183,9 +183,7 @@
                                    (sget % :status)
                                    (sget % :state))
                                  (sget-in % [:hosts :hostname]) (sget-in % [:checks :path])))
-          check-statuses (->> (k/select models/check-statuses
-                                (k/with-object models/hosts)
-                                (k/with-object models/checks))
+          check-statuses (->> (models/get-check-statuses-with-hosts-and-checks)
                               (sort-by sort-key-fn))]
       (layout (index-page check-statuses) (nav :overview))))
 
