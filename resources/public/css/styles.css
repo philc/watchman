@@ -78,13 +78,18 @@ table.display {
 table.display th, table.display td {
   padding: 0 10px;
   padding-top: 10px;
-  width: 100%;
+  width: 40%;
   vertical-align: bottom;
 }
+
 table.display th {
   text-align: left;
   padding-bottom: 10px;
   border-bottom: 1px solid #ccc;
+}
+
+table.display td.check-path {
+  width: 60%;
 }
 
 table.display th:first-of-type, table.display td:first-of-type {
@@ -93,10 +98,6 @@ table.display th:first-of-type, table.display td:first-of-type {
 
 table.display th:last-of-type, table.display td:last-of-type {
   text-align: right;
-}
-
-table.diplay td.path {
-  width: 60%;
 }
 
 html { height: 100%; }
@@ -142,7 +143,9 @@ header {
 
 aside.side-column {
   flex: 1;
-  max-width: 300px;}
+  /* max-width is set so that the middle column can expand further for larger displays. */
+  max-width: 300px;
+}
 
 #black-edge {
   /* Make sure the black edge is always tall enough to contain watchman-text. */

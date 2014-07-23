@@ -55,10 +55,10 @@
       <tr>
         <th>Path</th>
         <th>Nickname</th>
-        <th>HTTP status code</th>
+        <th>HTTP<br />status code</th>
         <th>Timeout</th>
-        <th>Max retries</th>
-        <th>Send email?</th>
+        <th>Max<br />retries</th>
+        <th>Send<br />email?</th>
         <th></th>
       </tr>
 
@@ -66,7 +66,7 @@
            that these input fields get submitted with the form, so it's important that the "deleted" flag is
            set to true in the HTML, so these fields are not persisted during submission. -->
       <tr class="row-template" style="display:none">
-        <td class="path">
+        <td class="check-path">
           <input type="hidden" class="id" name="checks[none][id]"/>
           <input type="hidden" class="deleted" name="checks[none][deleted]" value="true"/>
           <input type="text" class="path" name="checks[none][path]"/>
@@ -84,7 +84,7 @@
       </tr>
 
       <tr class="check">
-        <td class="path">
+        <td class="check-path">
           <input type="hidden" class="id" name="checks[0][id]"/>
           <input type="hidden" class="deleted" name="checks[0][deleted]" value="false"/>
           <input type="text" class="path" name="checks[0][path]"/>
