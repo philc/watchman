@@ -29,7 +29,10 @@ h2 {
 
 p { margin: 16px 0; }
 
-input[type=text] { padding: 5px 5px; }
+input[type=text] {
+  width: 100%;
+  padding: 5px 5px;
+}
 
 button, .button, input[type=submit] {
   display: inline-block;
@@ -92,6 +95,10 @@ table.display th:last-of-type, table.display td:last-of-type {
   text-align: right;
 }
 
+table.diplay td.path {
+  width: 60%;
+}
+
 html { height: 100%; }
 body {
   background-color: #f9f9f9;
@@ -109,7 +116,8 @@ header {
 }
 
 #inner-body {
-  width: 800px;
+  min-width: 800px;
+  flex: 2;
   box-sizing: border-box;
   padding: 0 40px 100px 40px;
 }
@@ -132,7 +140,9 @@ header {
   -ms-user-select: none;
 }
 
-aside.side-column { flex: 1; }
+aside.side-column {
+  flex: 1;
+  max-width: 300px;}
 
 #black-edge {
   /* Make sure the black edge is always tall enough to contain watchman-text. */
