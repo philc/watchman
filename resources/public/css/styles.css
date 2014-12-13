@@ -145,6 +145,7 @@ aside.side-column {
   flex: 1;
   /* max-width is set so that the middle column can expand further for larger displays. */
   max-width: 300px;
+  z-index: -1;
 }
 
 #black-edge {
