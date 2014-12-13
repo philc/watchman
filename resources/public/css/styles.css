@@ -194,7 +194,7 @@ table#check-statuses td {
 table#check-statuses td:first-of-type { padding-left: 0; }
 
 table td.host { width: 100%; }
-table#check-statuses .last-checked, table#check-statuses .last-changed { text-align: right; }
+table#check-statuses .last-checked, table#check-statuses .status-last-changed { text-align: right; }
 
 table#check-statuses td.status { text-align: center; }
 table#check-statuses tr[data-state="paused"] a .icon-pause { display: none; }

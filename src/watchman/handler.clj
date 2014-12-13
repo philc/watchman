@@ -50,7 +50,7 @@
                        [:.last-checked] (content (-> (sget check-status :last_checked_at)
                                                      time-coerce/to-date-time
                                                      friendly-timestamp-string))
-                       [:.last-changed] (content (-> (sget check-status :status_last_changed_at)
+                       [:.status-last-changed] (content (-> (sget check-status :status_last_changed_at)
                                                      time-coerce/to-date-time
                                                      friendly-timestamp-string))
                        [:.status] (add-class (sget check-status :status))

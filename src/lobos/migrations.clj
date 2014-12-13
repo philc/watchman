@@ -75,4 +75,4 @@
   (up []
     (alter :add (table :check_statuses (timestamp :status_last_changed_at))))
   (down []
-    (alter :drop (table :check_statuse (column :status_last_changed_at)))))
+    (alter :drop (table :check_statuses (column :status_last_changed_at)))))
