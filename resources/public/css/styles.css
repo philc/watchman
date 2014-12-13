@@ -145,6 +145,7 @@ aside.side-column {
   flex: 1;
   /* max-width is set so that the middle column can expand further for larger displays. */
   max-width: 300px;
+  z-index: -1;
 }
 
 #black-edge {
@@ -194,7 +195,7 @@ table#check-statuses td {
 table#check-statuses td:first-of-type { padding-left: 0; }
 
 table td.host { width: 100%; }
-table#check-statuses td.last-checked, table#check-statuses th.last-checked { text-align: right; }
+table#check-statuses .last-checked, table#check-statuses .status-last-changed { text-align: right; }
 
 table#check-statuses td.status { text-align: center; }
 table#check-statuses tr[data-state="paused"] a .icon-pause { display: none; }

@@ -70,3 +70,9 @@
     (alter :add (table :checks (boolean :send_email :not-null (default true)))))
   (down []
     (alter :drop (table :checks (column :send_email)))))
+
+(defmigration add-status-last-changed-at-column-to-check-statuses-20141212
+  (up []
+    (alter :add (table :check_statuses (timestamp :status_last_changed_at))))
+  (down []
+    (alter :drop (table :check_statuses (column :status_last_changed_at)))))

@@ -161,17 +161,19 @@
         is-up (= (:status response) (sget check :expected_status_code))
         previous-status (sget check-status :status)
         new-status (if is-up "up" "down")
-        last-checked-at-timestamp (time-coerce/to-timestamp (time-core/now))]
+        current-timestamp (time-coerce/to-timestamp (time-core/now))]
     (log-info (format "Result for check-status %s: %s %s" check-status-id
                       (models/get-url-of-check-status check-status) (:status response)))
     (when-not is-up
       (log-info (format "check-status %s body: %s" check-status-id
                         (-> response :body string/trim (truncate-string 1000)))))
+    (when (or (not= previous-status new-status) (nil? (sget check-status :status_last_changed_at)))
+      (models/update-check-status check-status-id {:status_last_changed_at current-timestamp}))
     (if (or is-up (not has-remaining-attempts))
       (do
         (models/update-check-status
          check-status-id
-         {:last_checked_at last-checked-at-timestamp
+         {:last_checked_at current-timestamp
           :last_response_status_code (:status response)
           :last_response_content_type (-?> (get-in response [:headers "content-type"])
                                            strip-charset-from-content-type)
@@ -185,7 +187,7 @@
                       smtp-credentials))
         (swap! checks-in-progress dissoc check-status-id))
       (do
-        (models/update-check-status check-status-id {:last_checked_at last-checked-at-timestamp})
+        (models/update-check-status check-status-id {:last_checked_at current-timestamp})
         (log-info (str "Will retry check-status id " check-status-id))))))
 
 (defn- perform-check-in-background
