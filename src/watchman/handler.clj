@@ -51,8 +51,8 @@
                                                      time-coerce/to-date-time
                                                      friendly-timestamp-string))
                        [:.status-last-changed] (content (-> (sget check-status :status_last_changed_at)
-                                                     time-coerce/to-date-time
-                                                     friendly-timestamp-string))
+                                                            time-coerce/to-date-time
+                                                            friendly-timestamp-string))
                        [:.status] (add-class (sget check-status :status))
                        [:.failure-reason] (content (get-check-status-failure-message check-status))))
 
