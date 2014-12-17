@@ -197,6 +197,9 @@
       "Healthy\n"
       {:status 500 :body "Unable to talk to the database.\n"}))
 
+  (GET "/statusz" []
+    (slurp "statusz.html"))
+
   (GET "/roles" []
     (let [roles (k/select models/roles (k/order :name))]
       (layout (roles-page roles) (nav :roles-edit))))
