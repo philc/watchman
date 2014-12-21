@@ -24,7 +24,9 @@
 (defn friendly-timestamp-string
   "For the given time, returns N secs ago, N minutes ago, or the full timestamp."
   [t]
-  (let [seconds-ago (int (time-core/in-secs (time-core/interval (or t (time-core/now)) (time-core/now))))
+  (let [seconds-ago (int (-> (or t (time-core/now))
+                             (time-core/interval (time-core/now))
+                             (time-core/in-secs)))
         minutes-ago (int (/ seconds-ago 60))
         hours-ago (int (/ minutes-ago 60))
         days-ago (int (/ hours-ago 24))]
