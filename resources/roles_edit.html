@@ -45,10 +45,14 @@
 
   <form method="POST">
 
-    <p>
-      Role name
-      <input type="text" name="name" />
-    </p>
+    <div>
+      <label for="name">Role name</label>
+      <input type="text" name="name" /><br/>
+
+      <label for="email">Send alert emails to</label>
+      <input type="text" class="email" name="email" value="" />
+      <p class="example optional">(Optional. If empty, alerts will go to default address)</p>
+    </div>
 
     <h2>Checks</h2>
     <table id="checks" class="display">

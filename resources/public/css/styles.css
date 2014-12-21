@@ -255,4 +255,11 @@ table#check-statuses tr.failure-message pre {
 
 #roles-edit-page input.max-retries { width: 40px; }
 
+#roles-edit-page input.email {
+  width: 200px;
+  margin: 15px 0 0 10px;
+}
+
+.optional { margin: 8px 0 }
+
 #roles-edit-page td.check-send-email { text-align:center; vertical-align:middle; }

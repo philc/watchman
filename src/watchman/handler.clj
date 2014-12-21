@@ -67,6 +67,7 @@
 (defsnippet roles-edit-page "roles_edit.html" [:#roles-edit-page]
   [role flash-message]
   [[:input (attr= :name "name")]] (set-attr :value (:name role))
+  [[:input (attr= :name "email")]] (set-attr :value (:email role))
   [:#flash-message] (if flash-message (content flash-message) (substitute nil))
   ; I sense a missing abstraction.
   [:tr.check] (clone-for [[i check] (->> role :checks (sort-by models/get-check-display-name) indexed)]
@@ -137,7 +138,8 @@
                 (if is-deleted (delete-fn) (update-fn))
                 (when-not is-deleted (insert-fn)))))]
     (k/update models/roles
-      (k/set-fields {:name (sget params :name)})
+      (k/set-fields {:name (sget params :name)
+                     :email (:email params)})
       (k/where {:id role-id}))
     (doseq [check checks]
       (let [check-id (-?> check :id Integer/parseInt)
