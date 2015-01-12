@@ -156,6 +156,7 @@
   [check-status has-remaining-attempts]
   (let [check-status-id (sget check-status :id)
         check (sget check-status :checks)
+        role-email (-> (sget check :role_id) (models/get-role-by-id) (sget :email))
         host (sget-in check-status [:hosts :hostname])
         response (perform-http-request-for-check check-status)
         is-up (= (:status response) (sget check :expected_status_code))
@@ -183,7 +184,7 @@
         (when (and (not= new-status previous-status) (sget check :send_email))
           (send-email (models/get-check-status-by-id check-status-id)
                       from-email-address
-                      to-email-address
+                      (or role-email to-email-address)
                       smtp-credentials))
         (swap! checks-in-progress dissoc check-status-id))
       (do

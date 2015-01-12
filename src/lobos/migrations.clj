@@ -76,3 +76,9 @@
     (alter :add (table :check_statuses (timestamp :status_last_changed_at))))
   (down []
     (alter :drop (table :check_statuses (column :status_last_changed_at)))))
+
+(defmigration add-email-column-to-roles-20141220
+  (up []
+    (alter :add (table :roles (text :email))))
+  (down []
+    (alter :drop (table :roles (column :email)))))
