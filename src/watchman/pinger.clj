@@ -11,7 +11,8 @@
             [net.cgrand.enlive-html :refer [content deftemplate do-> html-content set-attr substitute]]
             [watchman.utils :refer [get-env-var log-exception log-info sget sget-in truncate-string]]
             [postal.core :as postal])
-  (:import org.apache.http.conn.ConnectTimeoutException))
+  (:import org.apache.http.conn.ConnectTimeoutException
+           java.net.SocketTimeoutException))
 
 (def log-emails-without-sending (= "true" (System/getenv "WATCHMAN_LOG_EMAILS_WITHOUT_SENDING")))
 
@@ -137,10 +138,13 @@
         timeout (sget-in check-status [:checks :timeout])]
     (try
       (http/get url {:conn-timeout (-> timeout (* 1000) int)
+                     :socket-timeout (-> timeout (* 1000) int)
                      ; Don't throw exceptions on 500 status codes.
                      :throw-exceptions false})
       (catch ConnectTimeoutException exception
         {:status nil :body (format "Connection to %s timed out after %ss." url timeout)})
+      (catch SocketTimeoutException exception
+        {:status nil :body (format "No data read from socket to %s after %ss." url timeout)})
       (catch Exception exception
         ; We can get a ConnectionException if the host exists but is not listening on the port, or if it's
         ; an unknown host.
