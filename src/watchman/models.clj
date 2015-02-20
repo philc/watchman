@@ -139,6 +139,11 @@
 (defn get-host-by-id [id]
   (first (k/select hosts (k/where {:id id}))))
 
+(defn get-hosts-in-role [role-id]
+ (k/select hosts
+   (k/join roles-hosts (= :roles_hosts.host_id :id))
+   (k/where {:roles_hosts.role_id role-id})))
+
 (defn get-host-by-hostname-in-role
   "Returns a host record by hostname iff it is assigned to the specified role."
   [hostname role-id]
@@ -146,6 +151,9 @@
            (k/join roles-hosts (= :roles_hosts.host_id :id))
            (k/where {:hostname hostname
                      :roles_hosts.role_id role-id}))))
+
+(defn get-host-by-hostname [hostname]
+  (first (k/select hosts (k/where {:hostname hostname}))))
 
 (defn get-check-display-name [check-status]
   (or (sget check-status :nickname)

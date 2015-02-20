@@ -20,6 +20,7 @@
             [watchman.utils :refer [friendly-timestamp-string indexed sget sget-in]]
             [ring.util.response :refer [redirect]]
             [korma.incubator.core :as k]
+            [korma.db :as korma-db]
             [watchtower.core :as watcher]
             [watchman.pinger :as pinger]
             [watchman.models :as models]))
@@ -129,7 +130,10 @@
   [params]
   (let [role-id (-> (sget params :id) Integer/parseInt)
         checks (-> params :checks vals)
-        hosts (-> params :hosts vals)
+        hostnames (->> params :hosts vals
+                       (filter #(not= "true" (:deleted %)))
+                       (map :hostname) set)
+        existing-hosts (models/get-hosts-in-role role-id)
         serialize-to-db-from-params
           (fn [object insert-fn update-fn delete-fn]
             (let [object-id (-?> object :id Integer/parseInt)
@@ -159,22 +163,17 @@
                                         (k/set-fields check-db-fields)
                                         (k/where {:id check-id}))
                                      #(models/delete-check check-id))))
-    (doseq [host hosts]
-      (let [host-id (-?> host :id Integer/parseInt)
-            host-db-fields (select-keys host [:hostname])]
-        (serialize-to-db-from-params host
-                                     #(let [host-record-id
-                                           (-> (models/find-or-create-host (:hostname host))
-                                               (sget :id))]
-                                       (models/add-host-to-role host-record-id role-id))
-                                     #(k/update models/hosts
-                                        (k/set-fields host-db-fields)
-                                        (k/where {:id host-id}))
-                                     #(do
-                                        (models/remove-host-from-role host-id role-id)
-                                        ; If this host belongs to no other roles, go ahead and delete it.
-                                        (when (empty? (k/select models/roles-hosts (k/where {:host_id 3})))
-                                          (k/delete models/hosts (k/where {:id host-id})))))))))
+    ; First remove all hosts with hostnames that didn't appear in the params, then add each specified host to
+    ; the role.
+    (let [removed-hosts (remove #(contains? hostnames (sget % :hostname)) existing-hosts)]
+      (doseq [host removed-hosts]
+        (models/remove-host-from-role (sget host :id) role-id)
+        ; If this host belongs to no other roles, go ahead and delete it.
+        (when (empty? (k/select models/roles-hosts (k/where {:host_id (sget host :id)})))
+          (k/delete models/hosts (k/where {:id (sget host :id)}))))
+      (doseq [hostname hostnames]
+        (let [host-record (models/find-or-create-host hostname)]
+          (models/add-host-to-role (sget host-record :id) role-id))))))
 
 (defroutes app-routes
   (context "/api/v1" [] api-handler/api-routes)
