@@ -66,6 +66,10 @@
 ; A join table for roles-hosts.
 (defentity2 roles-hosts)
 
+; A URL to which to post updates to check-statuses
+; - url
+(defentity2 webhooks)
+
 (defn upsert
   "Updates rows which match the given where-map. If no row matches this map, insert one first.
    This isn't a truly robust or performant upsert, but it should be sufficient for our purposes."
@@ -178,6 +182,9 @@
   "The URL (hostname plus path) that a check-status checks."
   [check-status]
   (str "http://" (sget-in check-status [:hosts :hostname]) (sget-in check-status [:checks :path])))
+
+(defn get-webhooks []
+  (k/select webhooks))
 
 (defn create-role [fields]
   (k/insert roles (k/values fields)))
