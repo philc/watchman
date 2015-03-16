@@ -1,5 +1,6 @@
 (ns watchman.pinger
-  (:require [clojure.core.incubator :refer [-?>]]
+  (:require [cheshire.core :as json]
+            [clojure.core.incubator :refer [-?>]]
             [clj-time.core :as time-core]
             [clj-time.coerce :as time-coerce]
             [clj-time.format :as time-format]
@@ -127,6 +128,21 @@
           (log-info (format "Email for check-status %s failed to send:%s\nFull body\n:%s" check-status-id
                             result email-message)))))))
 
+(defn- post-to-webhooks [check-status]
+  (let [urls (map #(sget % :url) (models/get-webhooks))]
+    (when (seq urls)
+      (let [check-status-id (sget check-status :id)
+            host-name (first (string/split watchman-host #":"))
+            message (format "j:%s:%d|%s"
+                            host-name (System/currentTimeMillis)
+                            (json/generate-string check-status))]
+        (doseq [url urls]
+          (try
+            (http/post url {:body message})
+            (log-info (format "Posted check-status %s to webhook %s" check-status-id url))
+            (catch Exception e
+              (log-exception (format "Failed to post check-status %s to webhook %s" check-status-id url) e))))))))
+
 (defn- has-remaining-attempts? [check-status]
   (<= (sget-in @checks-in-progress [(sget check-status :id) :attempt-number])
       (sget-in check-status [:checks :max_retries])))
@@ -186,10 +202,12 @@
                                   (truncate-string response-body-size-limit-chars))
           :status new-status})
         (when (and (not= new-status previous-status) (sget check :send_email))
-          (send-email (models/get-check-status-by-id check-status-id)
-                      from-email-address
-                      (or role-email to-email-address)
-                      smtp-credentials))
+          (let [current-status (models/get-check-status-by-id check-status-id)]
+            (send-email current-status
+                        from-email-address
+                        (or role-email to-email-address)
+                        smtp-credentials)
+            (post-to-webhooks current-status)))
         (swap! checks-in-progress dissoc check-status-id))
       (do
         (models/update-check-status check-status-id {:last_checked_at current-timestamp})

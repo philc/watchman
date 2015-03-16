@@ -82,3 +82,12 @@
     (alter :add (table :roles (text :email))))
   (down []
     (alter :drop (table :roles (column :email)))))
+
+(defmigration add-webhooks-column-20150315
+  (up []
+    (create db
+      (table :webhooks
+        (integer :id :auto-inc :primary-key)
+        (text :url))))
+  (down []
+    (drop (table :webhooks))))
