@@ -37,8 +37,7 @@
         [field (first errors)]))))
 
 (def host-validation-map
-  {:hostname [(m/required :msg "is required")
-              [(comp validate-hostname) :msg "is not valid"]]})
+  {:hostname [(m/required :msg "is required")]})
 
 (defn- wrap-roles-routes
   "Wraps /roles/:id routes to load the role or halt with 404 if it doesn't exist."
