@@ -104,7 +104,7 @@
 (defn send-email
   "Send an email describing the current state of a check-status."
   ; We commonly call this function from the REPL, so it's nice to have all needed information as arguments.
-  [check-status from-email-address to-email-address smtp-credentials]
+  [check-status from-email-address to-email-addresses smtp-credentials]
   (let [host (sget check-status :hosts)
         check (sget check-status :checks)
         check-status-id (sget check-status :id)
@@ -113,7 +113,7 @@
         html-body (string/join (alert-email-html check-status))
         plaintext-body (alert-email-plaintext check-status)
         email-message {:from (add-role-to-email-address role-name from-email-address)
-                       :to to-email-address
+                       :to to-email-addresses
                        :subject subject
                        :body [:alternative
                               {:type "text/plain; charset=utf-8" :content plaintext-body}
@@ -176,7 +176,9 @@
   [check-status has-remaining-attempts]
   (let [check-status-id (sget check-status :id)
         check (sget check-status :checks)
-        role-email (-> (sget check :role_id) (models/get-role-by-id) (sget :email))
+        role-emails (when-let [emails-string (-> (sget check :role_id) (models/get-role-by-id) (sget :email))]
+                      (->> (string/split emails-string #",")
+                           (map string/trim)))
         host (sget-in check-status [:hosts :hostname])
         response (perform-http-request-for-check check-status)
         is-up (= (:status response) (sget check :expected_status_code))
@@ -205,7 +207,7 @@
           (let [current-status (models/get-check-status-by-id check-status-id)]
             (send-email current-status
                         from-email-address
-                        (or role-email to-email-address)
+                        (or role-emails [to-email-address])
                         smtp-credentials)
             (post-to-webhooks current-status)))
         (swap! checks-in-progress dissoc check-status-id))
