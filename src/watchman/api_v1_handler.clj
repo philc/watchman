@@ -65,7 +65,12 @@
       (do
         (models/remove-host-from-role (:id host) (:id role))
         {:status 204}) ; No content
-      (create-json-error-response 404 "hostname not found in role"))))
+      (create-json-error-response 404 "hostname not found in role")))
+
+  (PUT "/snooze/:duration" {:keys [params role]}
+    (let [snooze-duration (-> params :duration Long/parseLong)
+          role-id (:id role)]
+      (models/snooze-role role-id snooze-duration))))
 
 (defroutes api-routes
   (context "/roles/:id" []

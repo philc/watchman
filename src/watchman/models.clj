@@ -111,6 +111,16 @@
      (k/delete check-statuses (k/where {:host_id host-id :check_id [in check-ids]}))
      (k/delete roles-hosts (k/where {:host_id host-id :role_id role-id})))))
 
+(defn snooze-role [role-id snooze-duration-ms]
+  "Snoozes a role for the given duration in ms"
+  (let [snooze-until (->> snooze-duration-ms
+                          time-core/millis
+                          (time-core/plus (time-core/now))
+                          time-coerce/to-timestamp)]
+    (k/update roles
+      (k/set-fields {:snooze_until snooze-until})
+      (k/where {:id role-id}))))
+
 (defn get-check-statuses-with-hosts-and-checks
   "Returns a sequence of all check-status records in the database with their associated :hosts and :checks
   relations eagerly loaded."
