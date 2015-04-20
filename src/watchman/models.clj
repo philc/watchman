@@ -219,9 +219,14 @@
 (defn ready-to-perform?
   "True if enough time has elapsed since we last checked this alert."
   [check-status]
-  (let [last-checked-at (-?> (sget check-status :last_checked_at)
+  (let [role (->> check-status :checks :role_id get-role-by-id)
+        snooze-until (-?> (:snooze_until role)
+                          time-coerce/to-date-time)
+        last-checked-at (-?> (sget check-status :last_checked_at)
                              time-coerce/to-date-time)]
-    (or (nil? last-checked-at)
-        (time-core/after? (time-core/now)
-                          (time-core/plus last-checked-at
-                                          (time-core/secs (sget-in check-status [:checks :interval])))))))
+    (and (or (nil? snooze-until)
+             (time-core/after? (time-core/now) snooze-until))
+         (or (nil? last-checked-at)
+             (time-core/after? (time-core/now)
+                               (time-core/plus last-checked-at
+                                               (time-core/secs (sget-in check-status [:checks :interval]))))))))
