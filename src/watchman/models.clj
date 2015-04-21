@@ -216,17 +216,26 @@
     (k/set-fields fields)
     (k/where {:id id})))
 
-(defn ready-to-perform?
-  "True if enough time has elapsed since we last checked this alert."
-  [check-status]
-  (let [role (->> check-status :checks :role_id get-role-by-id)
+(defn role-snoozed? [role-id cur-time]
+  "Determine if the specified role is still asleep as specified by a snooze
+  cur-time is provided as an argument so that this result can be made consistent
+  with other timing related queries"
+  (let [role (get-role-by-id role-id)
         snooze-until (-?> (:snooze_until role)
-                          time-coerce/to-date-time)
+                          time-coerce/to-date-time)]
+   (and (not (nil? snooze-until))
+        (time-core/before? cur-time snooze-until))))
+
+(defn ready-to-perform?
+  "True if enough time has elapsed since we last checked this alert and the alert's role isn't snoozed"
+  [check-status]
+  (let [cur-time (time-core/now)
+        role-id (->> check-status :checks :role_id)
+        role-snoozed (role-snoozed? role-id cur-time)
         last-checked-at (-?> (sget check-status :last_checked_at)
                              time-coerce/to-date-time)]
-    (and (or (nil? snooze-until)
-             (time-core/after? (time-core/now) snooze-until))
+    (and (not role-snoozed)
          (or (nil? last-checked-at)
-             (time-core/after? (time-core/now)
+             (time-core/after? cur-time
                                (time-core/plus last-checked-at
                                                (time-core/secs (sget-in check-status [:checks :interval]))))))))

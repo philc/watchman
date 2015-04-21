@@ -32,7 +32,6 @@
         newRow.find("input:visible").first().focus();
       };
 
-
       $("#roles-edit-page").on("click", "a.add", addRow);
 
       $("#roles-edit-page").on("click", "a.remove", removeRow);
@@ -47,11 +46,14 @@
 
     <div>
       <label for="name">Role name</label>
-      <input type="text" name="name" /><br/>
+      <input type="text" class="name" name="name" /><br/>
 
       <label for="email">Send alert emails to</label>
       <input type="text" class="email" name="email" value="" />
       <p class="example optional">(Optional, comma-separated. If empty, alerts will go to default address)</p>
+
+      <label for="snooze-until">Snoozed until</label>
+      <input type="text" class="snooze-until" name="snooze-until" disabled="true" value="" />
     </div>
 
     <h2>Checks</h2>
@@ -136,5 +138,14 @@
       </tr>
     </table>
     <input type="submit" name="submit" value="Save" />
+
+    <br/>
+    <br/>
+  </form>
+
+  <form class="snooze" method="POST" action="/snooze">
+    <input type="submit" id="snooze" value="Snooze" />
+    <input name="duration" class="snooze-duration" type="number" value=5000></input>
+    <p class="snooze-desc example optional">(Snooze duration in ms)</p>
   </form>
 </div>

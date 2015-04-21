@@ -12,6 +12,7 @@
             (cemerick.friend [workflows :as friend-workflows]
                              [credentials :as friend-creds])
             [net.cgrand.enlive-html :refer :all]
+            [clj-time.core :as time-core]
             [clj-time.coerce :as time-coerce]
             [clojure.java.io :as clj-io]
             clojure.walk
@@ -69,6 +70,8 @@
   [role flash-message]
   [[:input (attr= :name "name")]] (set-attr :value (:name role))
   [[:input (attr= :name "email")]] (set-attr :value (:email role))
+  [[:input (attr= :name "snooze-until")]] (set-attr :value (or (:snooze_until role) ""))
+
   [:#flash-message] (if flash-message (content flash-message) (substitute nil))
   ; I sense a missing abstraction.
   [:tr.check] (clone-for [[i check] (->> role :checks (sort-by models/get-check-display-name) indexed)]
@@ -93,7 +96,9 @@
                                  (set-attr :name (format "hosts[%s][id]" i)))
                [:input.deleted] (set-attr :name (format "hosts[%s][deleted]" i))
                [:input.hostname] (do-> (set-attr :name (format "hosts[%s][hostname]" i))
-                                       (set-attr :value (sget host :hostname)))))
+                                       (set-attr :value (sget host :hostname))))
+  [:form.snooze] (set-attr :action (str "/api/v1/roles/" (:id role) "/snooze")))
+
 
 (deftemplate layout "layout.html"
   [body nav]

@@ -5,6 +5,7 @@
             [korma.db :refer [transaction]]
             [cheshire.core :as json]
             [mississippi.core :as m]
+            [ring.util.response :refer [redirect]]
             [watchman.utils :refer [validate-hostname log-info]]
             [watchman.models :as models]))
 
@@ -67,10 +68,11 @@
         {:status 204}) ; No content
       (create-json-error-response 404 "hostname not found in role")))
 
-  (PUT "/snooze/:duration" {:keys [params role]}
+  (POST "/snooze" {:keys [params role]}
     (let [snooze-duration (-> params :duration Long/parseLong)
           role-id (:id role)]
-      (models/snooze-role role-id snooze-duration))))
+      (models/snooze-role role-id snooze-duration)
+      (redirect (str "/roles/" role-id)))))
 
 (defroutes api-routes
   (context "/roles/:id" []
