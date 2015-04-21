@@ -279,6 +279,10 @@ table#check-statuses tr.failure-message pre {
   left: 195px;
 }
 
+form.update {
+  margin-bottom: 20px;
+}
+
 .optional { margin: 8px 0 }
 
 #roles-edit-page td.check-send-email { text-align:center; vertical-align:middle; }
