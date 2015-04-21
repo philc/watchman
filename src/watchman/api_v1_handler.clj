@@ -72,7 +72,7 @@
     (let [snooze-duration (-> params :duration Long/parseLong)
           role-id (:id role)
           snooze-until (models/snooze-role role-id snooze-duration)]
-      (create-json-response {:status 200 :msg (models/snooze-msg snooze-until)}))))
+      (create-json-response {:msg (models/snooze-msg snooze-until)}))))
 
 (defroutes api-routes
   (context "/roles/:id" []
