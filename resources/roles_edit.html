@@ -32,12 +32,27 @@
         newRow.find("input:visible").first().focus();
       };
 
+      var snooze = function(event) {
+        var duration = parseInt( $("input.snooze-duration").attr("value") );
+        var roleId = $("input#role-id").attr("value");
+        $.post("/api/v1/roles/" + roleId + "/snooze", {"duration": duration}, function(data) {
+          if (data["msg"]) {
+            $("span#snooze-until").text(data["msg"]);
+            $("span#snooze-until").removeClass("hidden");
+          }
+          $("#flash-message").html("Role snoozed");
+        });
+      }
+
       $("#roles-edit-page").on("click", "a.add", addRow);
 
       $("#roles-edit-page").on("click", "a.remove", removeRow);
+
+      $("#roles-edit-page").on("click", "button#snooze", snooze);
     });
   </script>
 
+  <input id="role-id" type="hidden" name="id" />
   <div id="flash-message">
     Your changes have been saved.
   </div>
@@ -46,14 +61,13 @@
 
     <div>
       <label for="name">Role name</label>
-      <input type="text" class="name" name="name" /><br/>
+      <input type="text" class="name" name="name" />
+      <span id="snooze-until"></span>
+      <br/>
 
       <label for="email">Send alert emails to</label>
       <input type="text" class="email" name="email" value="" />
       <p class="example optional">(Optional, comma-separated. If empty, alerts will go to default address)</p>
-
-      <label for="snooze-until">Snoozed until</label>
-      <input type="text" class="snooze-until" name="snooze-until" disabled="true" value="" />
     </div>
 
     <h2>Checks</h2>
@@ -140,9 +154,7 @@
     <input type="submit" name="submit" value="Save" />
   </form>
 
-  <form class="snooze" method="POST" action="/snooze">
-    <input type="submit" id="snooze" value="Snooze" />
-    <input name="duration" class="snooze-duration" type="number" value=5000></input>
-    <p class="snooze-desc example optional">(Snooze duration in ms)</p>
-  </form>
+  <button id="snooze">Snooze</button>
+  <input name="duration" class="snooze-duration" type="number" value=5></input>
+  <p class="snooze-desc example optional">(Snooze duration in minutes)</p>
 </div>

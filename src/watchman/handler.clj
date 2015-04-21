@@ -14,6 +14,7 @@
             [net.cgrand.enlive-html :refer :all]
             [clj-time.core :as time-core]
             [clj-time.coerce :as time-coerce]
+            [clj-time.format :as time-format]
             [clojure.java.io :as clj-io]
             clojure.walk
             [compojure.route :as route]
@@ -62,15 +63,25 @@
   [roles]
   [:li] (clone-for [role roles]
           [:a] (do-> (content (:name role))
-                     (set-attr :href (str "/roles/" (:id role))))))
+                     (set-attr :href (str "/roles/" (:id role))))
+          [:span.snooze-msg] (if (models/role-snoozed? role)
+                               (->> (:snooze_until role)
+                                    models/snooze-msg
+                                    content)
+                               (add-class "hidden"))))
 
 ; The editing UI for a role and its associated checks and hosts.
 ; - role: nil if this page is to render a new, unsaved role."
 (defsnippet roles-edit-page "roles_edit.html" [:#roles-edit-page]
   [role flash-message]
+  [[:input (attr= :name "id")]] (set-attr :value (:id role))
   [[:input (attr= :name "name")]] (set-attr :value (:name role))
   [[:input (attr= :name "email")]] (set-attr :value (:email role))
-  [[:input (attr= :name "snooze-until")]] (set-attr :value (or (:snooze_until role) ""))
+  [:span#snooze-until] (if (models/role-snoozed? role)
+                         (->> (:snooze_until role)
+                              models/snooze-msg
+                              content)
+                         (add-class "hidden"))
 
   [:#flash-message] (if flash-message (content flash-message) (substitute nil))
   ; I sense a missing abstraction.

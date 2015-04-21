@@ -59,7 +59,7 @@ button:active, .button:active, input[type=submit]:active {
   outline: none;
 }
 
-input#snooze {
+button#snooze {
   display: inline;
 }
 
@@ -264,9 +264,14 @@ table#check-statuses tr.failure-message pre {
   margin: 15px 0 0 10px;
 }
 
-#roles-edit-page input.snooze-until {
-  width: 200px;
-  margin: 15px 0 0 10px;
+span#snooze-until, span.snooze-msg {
+  font-size: 80%;
+  color: #A33333;
+  font-weight: normal;
+}
+
+span.hidden {
+  display: none;
 }
 
 #roles-edit-page input.snooze-duration {
