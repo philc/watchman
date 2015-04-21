@@ -236,6 +236,7 @@
                              time-coerce/to-date-time)]
     (and (not role-snoozed)
          (or (nil? last-checked-at)
-             (time-core/after? cur-time
-                               (time-core/plus last-checked-at
-                                               (time-core/secs (sget-in check-status [:checks :interval]))))))))
+             (->> (sget-in check-status [:checks :interval])
+                  time-core/secs
+                  (time-core/plus last-checked-at)
+                  (time-core/after? cur-time)))))) 
