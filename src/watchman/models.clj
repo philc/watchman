@@ -112,9 +112,9 @@
      (k/delete check-statuses (k/where {:host_id host-id :check_id [in check-ids]}))
      (k/delete roles-hosts (k/where {:host_id host-id :role_id role-id})))))
 
-(defn snooze-role [role-id snooze-duration-ms]
-  "Snoozes a role for the given duration in ms.  Returns the snooze_until parameter set for the role."
-  (let [snooze-until (->> snooze-duration-ms
+(defn snooze-role [role-id snooze-duration]
+  "Snoozes a role for the given duration in minutes.  Returns the snooze_until parameter set for the role."
+  (let [snooze-until (->> snooze-duration
                           time-core/minutes
                           (time-core/plus (time-core/now))
                           time-coerce/to-timestamp)]
@@ -219,11 +219,15 @@
     (k/where {:id id})))
 
 (defn snooze-msg [snooze-until]
-  "Given a Joda DateTime, return a formatted message for the UI indicating until when this role is snoozed."
-  (->> snooze-until
-       time-coerce/to-date-time
-       (time-format/unparse (time-format/formatters :rfc822))
-       (str "Snoozed until ")))
+  "Given a Joda DateTime, return a formatted message for the UI indicating until when this role is snoozed.
+  Formatted string will look like: 'Snoozed until 04-21-15 23:38 PST8PDT'.  Currently PST8PDT is hardcoded in
+  for the timezone."
+  (let [tz (time-core/time-zone-for-id "PST8PDT")
+        formatter (time-format/with-zone (time-format/formatter "MM-dd-yy HH:mm") tz)
+        formatted-time (->> snooze-until
+                            time-coerce/to-date-time
+                            (time-format/unparse formatter))]
+      (str "Snoozed until " formatted-time " " (.getID tz))))
 
 (defn role-snoozed?
   "Determine if the specified role is still asleep as specified by a snooze. cur-time is provided as an
