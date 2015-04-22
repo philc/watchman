@@ -92,7 +92,7 @@
   (down []
     (drop (table :webhooks))))
 
-(defmigration add-snooze-column20150520
+(defmigration add-snooze-column-20150520
   (up []
     (alter :add (table :roles (timestamp :snooze_until))))
   (down []

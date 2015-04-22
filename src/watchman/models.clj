@@ -219,26 +219,24 @@
     (k/where {:id id})))
 
 (defn snooze-msg [snooze-until]
-  "Given a Joda datetime, returns a formatted message for the UI indicating until when
-  this role is snoozed"
-  (let [formatter (time-format/formatters :rfc822)]
-    (->> snooze-until
-         time-coerce/to-date-time
-         (time-format/unparse formatter)
-         (str "Snoozed until "))))
+  "Given a Joda DateTime, return a formatted message for the UI indicating until when this role is snoozed."
+  (->> snooze-until
+       time-coerce/to-date-time
+       (time-format/unparse (time-format/formatters :rfc822))
+       (str "Snoozed until ")))
 
 (defn role-snoozed?
-  "Determine if the specified role is still asleep as specified by a snooze
-  cur-time is provided as an argument so that this result can be made consistent
-  with other timing related queries"
+  "Determine if the specified role is still asleep as specified by a snooze. cur-time is provided as an
+  argument so that this result can be made consistent with other timing related queries"
   ([role] (role-snoozed? role (time-core/now)))
   ([role cur-time] (let [snooze-until (-?> (:snooze_until role)
                                            time-coerce/to-date-time)]
-                     (and (not (nil? snooze-until))
+                     (and snooze-until
                           (time-core/before? cur-time snooze-until)))))
 
 (defn ready-to-perform?
-  "True if enough time has elapsed since we last checked this alert and the alert's role isn't snoozed"
+  "True if enough time has elapsed since we last checked this alert and the alert's role isn't
+  snoozed"
   [check-status]
   (let [cur-time (time-core/now)
         role-id (->> check-status :checks :role_id)
