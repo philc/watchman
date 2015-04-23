@@ -6,7 +6,7 @@
             [cheshire.core :as json]
             [mississippi.core :as m]
             [ring.util.response :refer [redirect]]
-            [watchman.utils :refer [validate-hostname log-info]]
+            [watchman.utils :refer [validate-hostname log-info snooze-message]]
             [watchman.models :as models]))
 
 (defn- create-json-error-response
@@ -72,7 +72,7 @@
     (let [snooze-duration (-> params :duration Long/parseLong)
           role-id (:id role)
           snooze-until (models/snooze-role role-id snooze-duration)]
-      (create-json-response {:msg (models/snooze-msg snooze-until)}))))
+      (create-json-response {:msg (snooze-message snooze-until)}))))
 
 (defroutes api-routes
   (context "/roles/:id" []

@@ -240,7 +240,7 @@
                          (k/with-object models/checks))]
     (doseq [check-status check-statuses]
       (when (and (not (get-in @checks-in-progress [(sget check-status :id) :in-progress]))
-                 (models/ready-to-perform? check-status))
+                 (models/ready-to-perform check-status))
         (perform-check-in-background check-status)))))
 
 (defn start-periodic-polling []

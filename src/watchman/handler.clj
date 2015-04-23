@@ -19,7 +19,7 @@
             clojure.walk
             [compojure.route :as route]
             [clojure.string :as string]
-            [watchman.utils :refer [friendly-timestamp-string indexed sget sget-in]]
+            [watchman.utils :refer [friendly-timestamp-string indexed sget sget-in role-snoozed? snooze-message]]
             [ring.util.response :refer [redirect]]
             [korma.incubator.core :as k]
             [korma.db :as korma-db]
@@ -64,11 +64,13 @@
   [:li] (clone-for [role roles]
           [:a] (do-> (content (:name role))
                      (set-attr :href (str "/roles/" (:id role))))
-          [:span.snooze-msg] (if (models/role-snoozed? role)
+          [:span.snooze-message] (if (role-snoozed? role)
                                (->> (:snooze_until role)
-                                    models/snooze-msg
+                                    snooze-message
                                     content)
                                (add-class "hidden"))))
+
+
 
 ; The editing UI for a role and its associated checks and hosts.
 ; - role: nil if this page is to render a new, unsaved role."
@@ -77,9 +79,9 @@
   [[:input (attr= :name "id")]] (set-attr :value (:id role))
   [[:input (attr= :name "name")]] (set-attr :value (:name role))
   [[:input (attr= :name "email")]] (set-attr :value (:email role))
-  [:span#snooze-until] (if (models/role-snoozed? role)
+  [:span#snooze-until] (if (role-snoozed? role)
                          (->> (:snooze_until role)
-                              models/snooze-msg
+                              snooze-message
                               content)
                          (add-class "hidden"))
 

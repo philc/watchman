@@ -258,7 +258,7 @@ table#check-statuses tr.failure-message pre {
   margin: 15px 0 0 10px;
 }
 
-span#snooze-until, span.snooze-msg {
+span#snooze-until, span.snooze-message {
   font-size: 80%;
   color: #A33333;
   font-weight: normal;

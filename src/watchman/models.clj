@@ -6,7 +6,7 @@
             [clojure.string :as string]
             [korma.db :refer [transaction]]
             [korma.incubator.core :as k :refer [belongs-to defentity has-many many-to-many]]
-            [watchman.utils :refer [sget sget-in]]
+            [watchman.utils :refer [sget sget-in role-snoozed?]]
             [korma.db :refer :all]))
 
 (defdb watchman-db (postgres {:host (or (System/getenv "WATCHMAN_DB_HOST") "localhost")
@@ -112,8 +112,9 @@
      (k/delete check-statuses (k/where {:host_id host-id :check_id [in check-ids]}))
      (k/delete roles-hosts (k/where {:host_id host-id :role_id role-id})))))
 
-(defn snooze-role [role-id snooze-duration]
+(defn snooze-role
   "Snoozes a role for the given duration in minutes.  Returns the snooze_until parameter set for the role."
+  [role-id snooze-duration]
   (let [snooze-until (->> snooze-duration
                           time-core/minutes
                           (time-core/plus (time-core/now))
@@ -218,38 +219,17 @@
     (k/set-fields fields)
     (k/where {:id id})))
 
-(defn snooze-msg [snooze-until]
-  "Given a Joda DateTime, return a formatted message for the UI indicating until when this role is snoozed.
-  Formatted string will look like: 'Snoozed until 04-21-15 23:38 PST8PDT'.  Currently PST8PDT is hardcoded in
-  for the timezone."
-  (let [tz (time-core/time-zone-for-id "PST8PDT")
-        formatter (time-format/with-zone (time-format/formatter "MM-dd-yy HH:mm") tz)
-        formatted-time (->> snooze-until
-                            time-coerce/to-date-time
-                            (time-format/unparse formatter))]
-      (str "Snoozed until " formatted-time " " (.getID tz))))
-
-(defn role-snoozed?
-  "Determine if the specified role is still asleep as specified by a snooze. cur-time is provided as an
-  argument so that this result can be made consistent with other timing related queries"
-  ([role] (role-snoozed? role (time-core/now)))
-  ([role cur-time] (let [snooze-until (-?> (:snooze_until role)
-                                           time-coerce/to-date-time)]
-                     (and snooze-until
-                          (time-core/before? cur-time snooze-until)))))
-
-(defn ready-to-perform?
+(defn ready-to-perform
   "True if enough time has elapsed since we last checked this alert and the alert's role isn't
-  snoozed"
+  snoozed."
   [check-status]
   (let [cur-time (time-core/now)
-        role-id (->> check-status :checks :role_id)
-        role-snoozed (role-snoozed? (get-role-by-id role-id) cur-time)
+        role-id (-> check-status :checks :role_id)
         last-checked-at (-?> (sget check-status :last_checked_at)
                              time-coerce/to-date-time)]
-    (and (not role-snoozed)
-         (or (nil? last-checked-at)
-             (->> (sget-in check-status [:checks :interval])
-                  time-core/secs
-                  (time-core/plus last-checked-at)
-                  (time-core/after? cur-time)))))) 
+    (when (not (role-snoozed? (get-role-by-id role-id) cur-time))
+      (or (nil? last-checked-at)
+          (->> (sget-in check-status [:checks :interval])
+               time-core/secs
+               (time-core/plus last-checked-at)
+               (time-core/after? cur-time))))))
