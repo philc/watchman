@@ -12,12 +12,14 @@
             (cemerick.friend [workflows :as friend-workflows]
                              [credentials :as friend-creds])
             [net.cgrand.enlive-html :refer :all]
+            [clj-time.core :as time-core]
             [clj-time.coerce :as time-coerce]
+            [clj-time.format :as time-format]
             [clojure.java.io :as clj-io]
             clojure.walk
             [compojure.route :as route]
             [clojure.string :as string]
-            [watchman.utils :refer [friendly-timestamp-string indexed sget sget-in]]
+            [watchman.utils :refer [friendly-timestamp-string indexed sget sget-in role-snoozed? snooze-message]]
             [ring.util.response :refer [redirect]]
             [korma.incubator.core :as k]
             [korma.db :as korma-db]
@@ -61,14 +63,28 @@
   [roles]
   [:li] (clone-for [role roles]
           [:a] (do-> (content (:name role))
-                     (set-attr :href (str "/roles/" (:id role))))))
+                     (set-attr :href (str "/roles/" (:id role))))
+          [:span.snooze-message] (if (role-snoozed? role)
+                               (->> (:snooze_until role)
+                                    snooze-message
+                                    content)
+                               (add-class "hidden"))))
+
+
 
 ; The editing UI for a role and its associated checks and hosts.
 ; - role: nil if this page is to render a new, unsaved role."
 (defsnippet roles-edit-page "roles_edit.html" [:#roles-edit-page]
   [role flash-message]
+  [[:input (attr= :name "id")]] (set-attr :value (:id role))
   [[:input (attr= :name "name")]] (set-attr :value (:name role))
   [[:input (attr= :name "email")]] (set-attr :value (:email role))
+  [:span#snooze-until] (if (role-snoozed? role)
+                         (->> (:snooze_until role)
+                              snooze-message
+                              content)
+                         (add-class "hidden"))
+
   [:#flash-message] (if flash-message (content flash-message) (substitute nil))
   ; I sense a missing abstraction.
   [:tr.check] (clone-for [[i check] (->> role :checks (sort-by models/get-check-display-name) indexed)]
@@ -93,7 +109,9 @@
                                  (set-attr :name (format "hosts[%s][id]" i)))
                [:input.deleted] (set-attr :name (format "hosts[%s][deleted]" i))
                [:input.hostname] (do-> (set-attr :name (format "hosts[%s][hostname]" i))
-                                       (set-attr :value (sget host :hostname)))))
+                                       (set-attr :value (sget host :hostname))))
+  [:form.snooze] (set-attr :action (str "/api/v1/roles/" (:id role) "/snooze")))
+
 
 (deftemplate layout "layout.html"
   [body nav]

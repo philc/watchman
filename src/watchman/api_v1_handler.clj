@@ -5,7 +5,8 @@
             [korma.db :refer [transaction]]
             [cheshire.core :as json]
             [mississippi.core :as m]
-            [watchman.utils :refer [validate-hostname log-info]]
+            [ring.util.response :refer [redirect]]
+            [watchman.utils :refer [validate-hostname log-info snooze-message]]
             [watchman.models :as models]))
 
 (defn- create-json-error-response
@@ -65,7 +66,13 @@
       (do
         (models/remove-host-from-role (:id host) (:id role))
         {:status 204}) ; No content
-      (create-json-error-response 404 "hostname not found in role"))))
+      (create-json-error-response 404 "hostname not found in role")))
+
+  (POST "/snooze" {:keys [params role]}
+    (let [snooze-duration (-> params :duration Long/parseLong)
+          role-id (:id role)
+          snooze-until (models/snooze-role role-id snooze-duration)]
+      (create-json-response {:msg (snooze-message snooze-until)}))))
 
 (defroutes api-routes
   (context "/roles/:id" []

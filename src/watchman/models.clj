@@ -1,11 +1,12 @@
 (ns watchman.models
   (:require [clj-time.core :as time-core]
+            [clj-time.coerce :as time-coerce]
+            [clj-time.format :as time-format]
             [clojure.core.incubator :refer [-?>]]
             [clojure.string :as string]
             [korma.db :refer [transaction]]
             [korma.incubator.core :as k :refer [belongs-to defentity has-many many-to-many]]
-            [watchman.utils :refer [sget sget-in]]
-            [clj-time.coerce :as time-coerce]
+            [watchman.utils :refer [sget sget-in role-snoozed?]]
             [korma.db :refer :all]))
 
 (defdb watchman-db (postgres {:host (or (System/getenv "WATCHMAN_DB_HOST") "localhost")
@@ -111,6 +112,18 @@
      (k/delete check-statuses (k/where {:host_id host-id :check_id [in check-ids]}))
      (k/delete roles-hosts (k/where {:host_id host-id :role_id role-id})))))
 
+(defn snooze-role
+  "Snoozes a role for the given duration in minutes.  Returns the snooze_until parameter set for the role."
+  [role-id snooze-duration]
+  (let [snooze-until (->> snooze-duration
+                          time-core/minutes
+                          (time-core/plus (time-core/now))
+                          time-coerce/to-timestamp)]
+    (k/update roles
+      (k/set-fields {:snooze_until snooze-until})
+      (k/where {:id role-id}))
+    snooze-until))
+
 (defn get-check-statuses-with-hosts-and-checks
   "Returns a sequence of all check-status records in the database with their associated :hosts and :checks
   relations eagerly loaded."
@@ -206,12 +219,17 @@
     (k/set-fields fields)
     (k/where {:id id})))
 
-(defn ready-to-perform?
-  "True if enough time has elapsed since we last checked this alert."
+(defn ready-to-perform
+  "True if enough time has elapsed since we last checked this alert and the alert's role isn't
+  snoozed."
   [check-status]
-  (let [last-checked-at (-?> (sget check-status :last_checked_at)
+  (let [cur-time (time-core/now)
+        role-id (-> check-status :checks :role_id)
+        last-checked-at (-?> (sget check-status :last_checked_at)
                              time-coerce/to-date-time)]
-    (or (nil? last-checked-at)
-        (time-core/after? (time-core/now)
-                          (time-core/plus last-checked-at
-                                          (time-core/secs (sget-in check-status [:checks :interval])))))))
+    (when (not (role-snoozed? (get-role-by-id role-id) cur-time))
+      (or (nil? last-checked-at)
+          (->> (sget-in check-status [:checks :interval])
+               time-core/secs
+               (time-core/plus last-checked-at)
+               (time-core/after? cur-time))))))

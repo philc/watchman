@@ -7,7 +7,8 @@
         ; Some of Korma's functions (like table) collide with lobos.
         [korma.db :only [transaction]]
         [korma.incubator.core :only [select with-object fields where join order group limit insert delete
-                                     values set-fields subselect update exec-raw]]))
+                                     values set-fields subselect update exec-raw]])
+  (:require [watchman.models :as models]))
 
 (defmigration create-data-model-20130908
   (up []
@@ -91,3 +92,9 @@
         (text :url))))
   (down []
     (drop (table :webhooks))))
+
+(defmigration add-snooze-column-20150421
+  (up []
+    (exec-raw "ALTER TABLE roles ADD COLUMN snooze_until TIMESTAMP WITH TIME ZONE"))
+  (down []
+    (exec-raw "ALTER TABLE roles DROP COLUMN snooze_until")))

@@ -17,9 +17,7 @@ a:active {
   color: white;
 }
 
-h1 {
-  margin: 16px 0;
-}
+h1 { margin: 16px 0; }
 
 h2 {
   margin-top: 20px;
@@ -242,7 +240,7 @@ table#check-statuses tr.failure-message pre {
 
 #roles-edit-page th { white-space:nowrap; }
 
-#roles-edit-page input[name=name] {
+#roles-edit-page input[name="name"] {
   width: 200px;
   margin-left: 10px;
 }
@@ -255,10 +253,30 @@ table#check-statuses tr.failure-message pre {
 
 #roles-edit-page input.max-retries { width: 40px; }
 
-#roles-edit-page input.email {
+#roles-edit-page input[name="email"] {
   width: 200px;
   margin: 15px 0 0 10px;
 }
+
+span#snooze-until, span.snooze-message {
+  font-size: 80%;
+  color: #A33333;
+  font-weight: normal;
+}
+
+span.hidden { display: none; }
+
+#roles-edit-page input.snooze-duration {
+  width: 200px;
+  margin-left: 10px;
+}
+
+#roles-edit-page p.snooze-desc {
+  position: relative;
+  left: 195px;
+}
+
+form.update { margin-bottom: 20px; }
 
 .optional { margin: 8px 0 }
 

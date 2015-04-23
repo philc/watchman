@@ -1,6 +1,8 @@
 (ns watchman.utils
   (:require [clj-time.core :as time-core]
+            [clj-time.coerce :as time-coerce]
             [clj-time.format :as time-format]
+            [clojure.core.incubator :refer [-?>]]
             [clojure.java.io :refer [reader writer]])
   (:import [java.net URL MalformedURLException]
            [java.io BufferedWriter PrintWriter StringWriter]))
@@ -113,3 +115,25 @@
       (= (.getHost url) hostname))
     (catch MalformedURLException e
       false)))
+
+(defn role-snoozed?
+  "Determines if the specified role is still asleep as specified by a snooze. cur-time is provided as an
+  argument so that this result can be made consistent with other timing related queries."
+  ([role]
+   (role-snoozed? role (time-core/now)))
+  ([role cur-time]
+   (when-let [snooze-until (-?> (:snooze_until role)
+                                                time-coerce/to-date-time)]
+                     (time-core/before? cur-time snooze-until))))
+
+(defn snooze-message
+  "Given a Joda DateTime, returns a formatted message for the UI indicating until when this role is snoozed.
+  Formatted string will look like: 'Snoozed until 04-21-15 23:38 PST8PDT'.  Currently PST8PDT is hardcoded in
+  for the timezone."
+  [snooze-until]
+  (let [tz (time-core/time-zone-for-id "PST8PDT")
+        formatter (time-format/with-zone (time-format/formatter "MM-dd-yy HH:mm") tz)
+        formatted-time (->> snooze-until
+                            time-coerce/to-date-time
+                            (time-format/unparse formatter))]
+      (str "Snoozed until " formatted-time " " (.getID tz))))
